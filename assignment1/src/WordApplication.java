@@ -127,6 +127,36 @@ class WorldApplication {
         char[][][] newWorld = new char[size][size][4];
 
         //4 P,W,G,A
+        File file = new File(gameboard);
+        FileReader fileReader = new FileReader(file);
+        BufferedReader reader = new BufferedReader(fileReader);
+
+        for (int i = 0; i < size; i ++) {
+            reader.readLine();
+
+            String line1 = reader.readLine();
+            String line2 = reader.readLine();
+
+            int offset = 0;
+            for (int j = 0; j < size; j ++) {
+                offset ++;
+
+                char pit = line1.charAt(offset + 1);
+                char wumpus = line1.charAt(offset + 3);
+                char gold = line2.charAt(offset + 1);
+                char agent = line2.charAt(offset + 3);
+
+                offset += 5;
+
+                newWorld[i][j][0] = pit;
+                newWorld[i][j][1] = wumpus;
+                newWorld[i][j][2] = gold;
+                newWorld[i][j][3] = agent;
+            }
+        }
+
+        reader.close();
+        fileReader.close();
 
         return newWorld;
     }
