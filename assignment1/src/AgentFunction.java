@@ -15,6 +15,7 @@
  * 
  */
 
+import java.util.PriorityQueue;
 import java.util.Random;
 
 class AgentFunction {
@@ -33,6 +34,9 @@ class AgentFunction {
     private boolean stench;
     private boolean scream;
     private Random rand;
+
+    MyGraph graph;
+
 
     public AgentFunction() {
         // for illustration purposes; you may delete all code
@@ -54,6 +58,9 @@ class AgentFunction {
         // new random number generator, for
         // randomly picking actions to execute
         rand = new Random();
+        rand.setSeed(0);
+
+        graph = new MyGraph(rand);
     }
 
     public int process(TransferPercept tp) {
@@ -62,20 +69,42 @@ class AgentFunction {
         // access to all percepts through the object
         // 'tp' as illustrated here:
 
+        if (tp.getGlitter()) {
+            return Action.GRAB;
+        }
+
         // read in the current percepts
         bump = tp.getBump();
-        glitter = tp.getGlitter();
         breeze = tp.getBreeze();
         stench = tp.getStench();
         scream = tp.getScream();
 
+        graph.getCurrNode().isBump = bump;
+        graph.getCurrNode().isBreeze = breeze;
+        graph.getCurrNode().isStench = stench;
 
-        if (bump == true || glitter == true || breeze == true || stench == true || scream == true) {
-            // do something
+        if (bump) {
+            graph.wasBumped();
         }
 
-        // return action to be performed
-        return actionTable[rand.nextInt(8)];
+        graph.updateGraph();
+
+        if (graph.getCurrentActions().size() == 0) {
+            graph.updateCurrentFrontier();
+        }
+
+        int action = (Integer)graph.getCurrentActions().poll();
+        if (action == Action.TURN_LEFT) {
+            graph.turnLeft();
+        } else if (action == Action.TURN_RIGHT) {
+            graph.turnRight();
+        } else if (action == Action.GO_FORWARD) {
+            graph.goForward();
+        } else {
+            action = Action.GRAB;
+        }
+
+        return action;
     }
 
     // public method to return the agent's name
@@ -83,4 +112,5 @@ class AgentFunction {
     public String getAgentName() {
         return agentName;
     }
+
 }
