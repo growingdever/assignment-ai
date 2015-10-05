@@ -133,6 +133,14 @@ class AgentFunction {
             currNode.isSafe = true;
         }
 
+        for (int i = 0; i < frontiers.size(); i++) {
+            if (frontiers.get(i) == currNode) {
+                // error!
+                frontiers.remove(i);
+                break;
+            }
+        }
+
         updateLabyrinth();
 
         // add frontier by here
@@ -142,17 +150,17 @@ class AgentFunction {
             MyNode right = labyrinth[currY][currX + 1];
             MyNode bottom = labyrinth[currY - 1][currX];
 
-            if (left != currFrontier && !left.isVisited && frontiers.indexOf(left) == -1) {
-                frontiers.add(left);
+            if (!left.isVisited) {
+                addFrontier(left);
             }
-            if (top != currFrontier && !top.isVisited && frontiers.indexOf(top) == -1) {
-                frontiers.add(top);
+            if (!top.isVisited) {
+                addFrontier(top);
             }
-            if (right != currFrontier && !right.isVisited && frontiers.indexOf(right) == -1) {
-                frontiers.add(right);
+            if (!right.isVisited) {
+                addFrontier(right);
             }
-            if (bottom != currFrontier && !bottom.isVisited && frontiers.indexOf(bottom) == -1) {
-                frontiers.add(bottom);
+            if (!bottom.isVisited) {
+                addFrontier(bottom);
             }
         }
 
@@ -218,8 +226,8 @@ class AgentFunction {
 
                 if (contradiction) {
                     node.isSafe = true;
-                    if (!node.isVisited && frontiers.indexOf(node) == -1 && currFrontier != node) {
-                        frontiers.add(node);
+                    if (!node.isVisited) {
+                        addFrontier(node);
                     }
                 }
             }
@@ -404,7 +412,7 @@ class AgentFunction {
         for (int i = 0; i < MAX_SAFE_LABYRINTH_SIZE; i++) {
             for (int j = 0; j < MAX_SAFE_LABYRINTH_SIZE; j++) {
                 MyNode node = labyrinth[i][j];
-                if (node.isVisited) {
+                if (node.isVisited || currNode == node) {
                     continue;
                 }
 
@@ -433,6 +441,18 @@ class AgentFunction {
         }
 
         return maybeFrontiers.get(rand.nextInt(maybeFrontiers.size()));
+    }
+
+    void addFrontier(MyNode frontier) {
+        if (frontiers.contains(frontier)) {
+            return;
+        }
+
+        if (frontier == currFrontier || frontier == labyrinth[currY][currX]) {
+            return;
+        }
+
+        frontiers.add(frontier);
     }
 
     public void turnRight() {
