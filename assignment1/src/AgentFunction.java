@@ -15,6 +15,8 @@
  * 
  */
 
+import com.sun.tools.javac.util.Assert;
+
 import java.util.*;
 
 class AgentFunction {
@@ -188,11 +190,6 @@ class AgentFunction {
     }
 
     void updateLabyrinth() {
-        MyNode currNode = labyrinth[currY][currX];
-        if (!currNode.isBreeze && !currNode.isStench) {
-
-        }
-
         int offsetX[] = {-1, 0, 1, 0};
         int offsetY[] = {0, 1, 0, -1};
         for (int i = 1; i <= MAX_SAFE_LABYRINTH_SIZE - 2; i++) {
@@ -222,10 +219,8 @@ class AgentFunction {
 
                 if (contradiction) {
                     node.isSafe = true;
-                    if (!node.isVisited) {
-                        if (frontiers.indexOf(node) == -1) {
-                            frontiers.add(node);
-                        }
+                    if (!node.isVisited && frontiers.indexOf(node) == -1 && currFrontier != node) {
+                        frontiers.add(node);
                     }
                 }
             }
@@ -237,9 +232,8 @@ class AgentFunction {
     }
 
     void updateActionsForFrontier() {
-        assert currActions.size() == 0;
-
-        assert frontiers.size() > 0;
+        Assert.check(currActions.size() == 0);
+        Assert.check(frontiers.size() > 0);
 
         MyNode currNode = labyrinth[currY][currX];
 
@@ -262,9 +256,12 @@ class AgentFunction {
         int offsetX[] = {-1, 0, 1, 0};
         int offsetY[] = {0, 1, 0, -1};
 
+        boolean pathExist = false;
+
         while (!queue.isEmpty()) {
             MyNode node = queue.poll();
             if (node == currFrontier) {
+                pathExist = true;
                 break;
             }
 
@@ -272,13 +269,21 @@ class AgentFunction {
                 int nextX = localToWorldPos(node.x + offsetX[i]);
                 int nextY = localToWorldPos(node.y + offsetY[i]);
                 MyNode nextNode = labyrinth[nextY][nextX];
-                if (!visited[nextY][nextX]) {
+                if (!visited[nextY][nextX] && nextNode.isVisited) {
                     visited[nextY][nextX] = true;
                     queue.offer(nextNode);
                     pred.put(nextNode, node);
+                } else {
+                    if (nextNode == currFrontier) {
+                        visited[nextY][nextX] = true;
+                        queue.offer(nextNode);
+                        pred.put(nextNode, node);
+                    }
                 }
             }
         }
+
+        Assert.check(pathExist);
 
         MyNode predNode = pred.get(currFrontier);
 
@@ -293,12 +298,9 @@ class AgentFunction {
             }
         }
 
-        Collections.reverse(onPathNodes);
+        Assert.check(!onPathNodes.contains(null));
 
-        if (currActions.size() != 0) {
-            // error!
-            return;
-        }
+        Collections.reverse(onPathNodes);
 
         int prevDir = currDir;
         for (int i = 0; i < onPathNodes.size() - 1; i++) {
@@ -384,7 +386,7 @@ class AgentFunction {
         }
 
         // error!
-        assert false;
+        Assert.check(false);
         return DIR_LEFT;
     }
 
