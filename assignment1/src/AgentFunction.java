@@ -74,7 +74,6 @@ class AgentFunction {
         // new random number generator, for
         // randomly picking actions to execute
         rand = new Random();
-        rand.setSeed(0);
 
         init();
     }
@@ -233,12 +232,16 @@ class AgentFunction {
 
     void updateActionsForFrontier() {
         Assert.check(currActions.size() == 0);
-        Assert.check(frontiers.size() > 0);
 
         MyNode currNode = labyrinth[currY][currX];
 
-        currFrontier = frontiers.get(0);
-        frontiers.remove(0);
+        if (frontiers.size() > 0) {
+            int i = rand.nextInt(frontiers.size());
+            currFrontier = frontiers.get(i);
+            frontiers.remove(i);
+        } else {
+            currFrontier = getDangerFrontier();
+        }
 
         boolean visited[][] = new boolean[MAX_SAFE_LABYRINTH_SIZE][];
         for (int i = 0; i < MAX_SAFE_LABYRINTH_SIZE; i++) {
@@ -388,6 +391,48 @@ class AgentFunction {
         // error!
         Assert.check(false);
         return DIR_LEFT;
+    }
+
+    MyNode getDangerFrontier() {
+        MyNode currNode = labyrinth[currY][currX];
+
+        ArrayList<MyNode> maybeFrontiers = new ArrayList<>();
+
+        int offsetX[] = {-1, 0, 1, 0};
+        int offsetY[] = {0, 1, 0, -1};
+
+        for (int i = 0; i < MAX_SAFE_LABYRINTH_SIZE; i++) {
+            for (int j = 0; j < MAX_SAFE_LABYRINTH_SIZE; j++) {
+                MyNode node = labyrinth[i][j];
+                if (node.isVisited) {
+                    continue;
+                }
+
+                boolean promise = false;
+                for (int k = 0; k < offsetX.length; k++) {
+                    int nextY = i + offsetY[k];
+                    int nextX = j + offsetX[k];
+                    if (nextY < 0 || nextY >= MAX_SAFE_LABYRINTH_SIZE) {
+                        continue;
+                    }
+                    if (nextX < 0 || nextX >= MAX_SAFE_LABYRINTH_SIZE) {
+                        continue;
+                    }
+
+                    if (labyrinth[nextY][nextX].isVisited) {
+                        promise = true;
+                    }
+                }
+
+                if (!promise) {
+                    continue;
+                }
+
+                maybeFrontiers.add(node);
+            }
+        }
+
+        return maybeFrontiers.get(rand.nextInt(maybeFrontiers.size()));
     }
 
     public void turnRight() {
