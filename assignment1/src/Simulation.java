@@ -109,6 +109,7 @@ class Simulation {
 
         } catch (Exception e) {
             System.out.println("An exception was thrown: " + e);
+            e.printStackTrace();
         }
 
         printEndWorld();

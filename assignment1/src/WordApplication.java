@@ -148,10 +148,10 @@ class WorldApplication {
 
                 offset += 5;
 
-                newWorld[i][j][0] = pit;
-                newWorld[i][j][1] = wumpus;
-                newWorld[i][j][2] = gold;
-                newWorld[i][j][3] = agent;
+                newWorld[size - 1 - i][j][0] = pit;
+                newWorld[size - 1 - i][j][1] = wumpus;
+                newWorld[size - 1 - i][j][2] = gold;
+                newWorld[size - 1 - i][j][3] = agent;
             }
         }
 
