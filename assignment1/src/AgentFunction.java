@@ -328,7 +328,7 @@ class AgentFunction {
                 currActions.offer(Action.GO_FORWARD);
             }
 
-            return DIR_LEFT;
+            return DIR_RIGHT;
         } else if (curr.x - 1 == next.x && curr.y == next.y) {
             // right to left
 
@@ -346,7 +346,7 @@ class AgentFunction {
                 currActions.offer(Action.GO_FORWARD);
             }
 
-            return DIR_RIGHT;
+            return DIR_LEFT;
         } else if (curr.y + 1 == next.y && curr.x == next.x) {
             // bottom to top
 
