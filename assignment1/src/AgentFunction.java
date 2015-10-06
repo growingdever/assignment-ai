@@ -136,15 +136,6 @@ class AgentFunction {
             clearForScream();
         }
 
-
-        for (int i = 0; i < frontiers.size(); i++) {
-            if (frontiers.get(i) == currNode) {
-                // error!
-                frontiers.remove(i);
-                break;
-            }
-        }
-
         addFrontierIfBlank();
 
         updateLabyrinth();
