@@ -133,31 +133,6 @@ class AgentFunction {
             currNode.isBlank = true;
         }
 
-        if (scream) {
-            // temporary
-            if (currDir == DIR_LEFT) {
-                for (int i = currX - 1; i >= 0; i--) {
-                    labyrinth[currY][i].isWumpus = false;
-                    labyrinth[currY][i].isStench = false;
-                }
-            } else if (currDir == DIR_RIGHT) {
-                for (int i = currX + 1; i < MAX_SAFE_LABYRINTH_SIZE; i++) {
-                    labyrinth[currY][i].isWumpus = false;
-                    labyrinth[currY][i].isStench = false;
-                }
-            } else if (currDir == DIR_TOP) {
-                for (int i = currY + 1; i < MAX_SAFE_LABYRINTH_SIZE; i++) {
-                    labyrinth[i][currX].isWumpus = false;
-                    labyrinth[i][currX].isStench = false;
-                }
-            } else if (currDir == DIR_BOTTOM) {
-                for (int i = currY - 1; i >= 0; i--) {
-                    labyrinth[i][currX].isWumpus = false;
-                    labyrinth[i][currX].isStench = false;
-                }
-            }
-        }
-
         for (int i = 0; i < frontiers.size(); i++) {
             if (frontiers.get(i) == currNode) {
                 // error!
@@ -166,28 +141,9 @@ class AgentFunction {
             }
         }
 
+        addFrontierIfBlank();
+
         updateLabyrinth();
-
-        // add frontier by here
-        if (currNode.isBlank) {
-            MyNode left = labyrinth[currY][currX - 1];
-            MyNode top = labyrinth[currY + 1][currX];
-            MyNode right = labyrinth[currY][currX + 1];
-            MyNode bottom = labyrinth[currY - 1][currX];
-
-            if (!left.isVisited) {
-                addFrontier(left);
-            }
-            if (!top.isVisited) {
-                addFrontier(top);
-            }
-            if (!right.isVisited) {
-                addFrontier(right);
-            }
-            if (!bottom.isVisited) {
-                addFrontier(bottom);
-            }
-        }
 
         if (currActions.size() == 0) {
             updateActionsForFrontier();
@@ -204,6 +160,30 @@ class AgentFunction {
         }
 
         return action;
+    }
+
+    void addFrontierIfBlank() {
+        if (!labyrinth[currY][currX].isBlank) {
+            return;
+        }
+
+        MyNode left = labyrinth[currY][currX - 1];
+        MyNode top = labyrinth[currY + 1][currX];
+        MyNode right = labyrinth[currY][currX + 1];
+        MyNode bottom = labyrinth[currY - 1][currX];
+
+        if (!left.isVisited) {
+            addFrontier(left);
+        }
+        if (!top.isVisited) {
+            addFrontier(top);
+        }
+        if (!right.isVisited) {
+            addFrontier(right);
+        }
+        if (!bottom.isVisited) {
+            addFrontier(bottom);
+        }
     }
 
     // public method to return the agent's name
@@ -293,6 +273,13 @@ class AgentFunction {
             }
         }
 
+        boolean pathExist = pathFinding();
+        Assert.check(pathExist);
+    }
+
+    boolean pathFinding() {
+        MyNode currNode = labyrinth[currY][currX];
+
         boolean visited[][] = new boolean[MAX_SAFE_LABYRINTH_SIZE][];
         for (int i = 0; i < MAX_SAFE_LABYRINTH_SIZE; i++) {
             visited[i] = new boolean[MAX_SAFE_LABYRINTH_SIZE];
@@ -336,7 +323,9 @@ class AgentFunction {
             }
         }
 
-        Assert.check(pathExist);
+        if (!pathExist) {
+            return false;
+        }
 
         MyNode predNode = pred.get(currFrontier);
 
@@ -361,6 +350,8 @@ class AgentFunction {
             MyNode b = onPathNodes.get(i + 1);
             prevDir = addActions(a, b, prevDir);
         }
+
+        return true;
     }
 
     int addActions(MyNode curr, MyNode next, int prevDir) {
@@ -497,7 +488,7 @@ class AgentFunction {
         frontiers.add(frontier);
     }
 
-    public void turnRight() {
+    void turnRight() {
         if (currDir == DIR_LEFT) {
             currDir = DIR_TOP;
         } else if (currDir == DIR_TOP) {
@@ -509,7 +500,7 @@ class AgentFunction {
         }
     }
 
-    public void turnLeft() {
+    void turnLeft() {
         if (currDir == DIR_LEFT) {
             currDir = DIR_BOTTOM;
         } else if (currDir == DIR_TOP) {
@@ -521,7 +512,7 @@ class AgentFunction {
         }
     }
 
-    public void goForward() {
+    void goForward() {
         prevX = currX;
         prevY = currY;
 
