@@ -127,6 +127,7 @@ class AgentFunction {
 
         if (bump) {
             wasBumped();
+            currNode = labyrinth[currY][currX];
         }
 
         if (!breeze && !stench) {
