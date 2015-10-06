@@ -130,9 +130,12 @@ class AgentFunction {
             currNode = labyrinth[currY][currX];
         }
 
-        if (!breeze && !stench) {
-            currNode.isBlank = true;
+        currNode.isBlank = !breeze && !stench;
+
+        if (scream) {
+            clearForScream();
         }
+
 
         for (int i = 0; i < frontiers.size(); i++) {
             if (frontiers.get(i) == currNode) {
@@ -184,6 +187,31 @@ class AgentFunction {
         }
         if (!bottom.isVisited) {
             addFrontier(bottom);
+        }
+    }
+
+    void clearForScream() {
+        // temporary
+        if (currDir == DIR_LEFT) {
+            for (int i = currX - 1; i >= 0; i--) {
+                labyrinth[currY][i].isWumpus = false;
+                labyrinth[currY][i].isStench = false;
+            }
+        } else if (currDir == DIR_RIGHT) {
+            for (int i = currX + 1; i < MAX_SAFE_LABYRINTH_SIZE; i++) {
+                labyrinth[currY][i].isWumpus = false;
+                labyrinth[currY][i].isStench = false;
+            }
+        } else if (currDir == DIR_TOP) {
+            for (int i = currY + 1; i < MAX_SAFE_LABYRINTH_SIZE; i++) {
+                labyrinth[i][currX].isWumpus = false;
+                labyrinth[i][currX].isStench = false;
+            }
+        } else if (currDir == DIR_BOTTOM) {
+            for (int i = currY - 1; i >= 0; i--) {
+                labyrinth[i][currX].isWumpus = false;
+                labyrinth[i][currX].isStench = false;
+            }
         }
     }
 
