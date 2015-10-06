@@ -130,7 +130,7 @@ class AgentFunction {
         }
 
         if (!breeze && !stench) {
-            currNode.isSafe = true;
+            currNode.isBlank = true;
         }
 
         if (scream) {
@@ -169,7 +169,7 @@ class AgentFunction {
         updateLabyrinth();
 
         // add frontier by here
-        if (currNode.isSafe) {
+        if (currNode.isBlank) {
             MyNode left = labyrinth[currY][currX - 1];
             MyNode top = labyrinth[currY + 1][currX];
             MyNode right = labyrinth[currY][currX + 1];
@@ -229,7 +229,7 @@ class AgentFunction {
                 for (int j = 1; j <= MAX_SAFE_LABYRINTH_SIZE - 2; j++) {
                     boolean contradiction = false;
                     MyNode node = labyrinth[i][j];
-                    if (node.isSafe) {
+                    if (node.isBlank) {
                         continue;
                     }
 
@@ -252,7 +252,7 @@ class AgentFunction {
                     }
 
                     if (contradiction) {
-                        node.isSafe = true;
+                        node.isBlank = true;
                         if (!node.isVisited) {
                             addFrontier(node);
                             loop = true;

@@ -6,7 +6,7 @@ public class MyNode {
 
     public boolean isVisited;
 
-    public boolean isSafe;
+    public boolean isBlank;
 
     public boolean isPit;
     public boolean isBreeze;
