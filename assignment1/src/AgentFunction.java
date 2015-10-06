@@ -133,6 +133,31 @@ class AgentFunction {
             currNode.isSafe = true;
         }
 
+        if (scream) {
+            // temporary
+            if (currDir == DIR_LEFT) {
+                for (int i = currX - 1; i >= 0; i--) {
+                    labyrinth[currY][i].isWumpus = false;
+                    labyrinth[currY][i].isStench = false;
+                }
+            } else if (currDir == DIR_RIGHT) {
+                for (int i = currX + 1; i < MAX_SAFE_LABYRINTH_SIZE; i++) {
+                    labyrinth[currY][i].isWumpus = false;
+                    labyrinth[currY][i].isStench = false;
+                }
+            } else if (currDir == DIR_TOP) {
+                for (int i = currY + 1; i < MAX_SAFE_LABYRINTH_SIZE; i++) {
+                    labyrinth[i][currX].isWumpus = false;
+                    labyrinth[i][currX].isStench = false;
+                }
+            } else if (currDir == DIR_BOTTOM) {
+                for (int i = currY - 1; i >= 0; i--) {
+                    labyrinth[i][currX].isWumpus = false;
+                    labyrinth[i][currX].isStench = false;
+                }
+            }
+        }
+
         for (int i = 0; i < frontiers.size(); i++) {
             if (frontiers.get(i) == currNode) {
                 // error!
@@ -176,7 +201,6 @@ class AgentFunction {
         } else if (action == Action.GO_FORWARD) {
             goForward();
         } else {
-            action = Action.GRAB;
         }
 
         return action;
@@ -197,41 +221,46 @@ class AgentFunction {
     }
 
     void updateLabyrinth() {
-        int offsetX[] = {-1, 0, 1, 0};
-        int offsetY[] = {0, 1, 0, -1};
-        for (int i = 1; i <= MAX_SAFE_LABYRINTH_SIZE - 2; i++) {
-            for (int j = 1; j <= MAX_SAFE_LABYRINTH_SIZE - 2; j++) {
-                boolean contradiction = false;
-                MyNode node = labyrinth[i][j];
+        boolean loop;
+        do {
+            loop = false;
 
-                for (int k1 = 0; k1 < offsetX.length; k1++) {
-                    int offsetX1 = j + offsetX[k1];
-                    int offsetY1 = i + offsetY[k1];
-
-                    MyNode node1 = labyrinth[offsetY1][offsetX1];
-                    for (int k2 = 0; k2 < offsetX.length; k2++) {
-                        int offsetX2 = j + offsetX[k2];
-                        int offsetY2 = i + offsetY[k2];
-                        if (offsetX1 == offsetX2 && offsetY1 == offsetY2) {
-                            continue;
-                        }
-
-                        MyNode node2 = labyrinth[offsetY2][offsetX2];
-
-                        if (perceptionCross(node1, node2)) {
-                            contradiction = true;
-                        }
+            for (int i = 1; i <= MAX_SAFE_LABYRINTH_SIZE - 2; i++) {
+                for (int j = 1; j <= MAX_SAFE_LABYRINTH_SIZE - 2; j++) {
+                    boolean contradiction = false;
+                    MyNode node = labyrinth[i][j];
+                    if (node.isSafe) {
+                        continue;
                     }
-                }
 
-                if (contradiction) {
-                    node.isSafe = true;
-                    if (!node.isVisited) {
-                        addFrontier(node);
+                    MyNode left = labyrinth[i][j - 1];
+                    MyNode top = labyrinth[i - 1][j];
+                    MyNode right = labyrinth[i][j + 1];
+                    MyNode bottom = labyrinth[i + 1][j];
+
+                    if (perceptionCross(left, top) || perceptionCross(left, right) || perceptionCross(left, bottom)) {
+                        contradiction = true;
+                    }
+                    if (perceptionCross(top, left) || perceptionCross(top, right) || perceptionCross(top, bottom)) {
+                        contradiction = true;
+                    }
+                    if (perceptionCross(right, top) || perceptionCross(right, left) || perceptionCross(right, bottom)) {
+                        contradiction = true;
+                    }
+                    if (perceptionCross(bottom, top) || perceptionCross(bottom, right) || perceptionCross(bottom, left)) {
+                        contradiction = true;
+                    }
+
+                    if (contradiction) {
+                        node.isSafe = true;
+                        if (!node.isVisited) {
+                            addFrontier(node);
+                            loop = true;
+                        }
                     }
                 }
             }
-        }
+        } while (loop);
     }
 
     boolean perceptionCross(MyNode lhs, MyNode rhs) {
@@ -248,7 +277,20 @@ class AgentFunction {
             currFrontier = frontiers.get(i);
             frontiers.remove(i);
         } else {
-            currFrontier = getDangerFrontier();
+            if (currNode.isStench) {
+                if (rand.nextBoolean()) {
+                    int turnTime = rand.nextInt(3);
+                    for (int i = 0; i < turnTime; i++) {
+                        currActions.add(Action.TURN_LEFT);
+                    }
+                    currActions.add(Action.SHOOT);
+                    return;
+                } else {
+                    currFrontier = getDangerFrontier();
+                }
+            } else {
+                currFrontier = getDangerFrontier();
+            }
         }
 
         boolean visited[][] = new boolean[MAX_SAFE_LABYRINTH_SIZE][];
