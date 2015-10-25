@@ -15,8 +15,6 @@
  * 
  */
 
-import com.sun.tools.javac.util.Assert;
-
 import java.util.*;
 
 class AgentFunction {
@@ -268,7 +266,9 @@ class AgentFunction {
     }
 
     void updateActionsForFrontier() {
-        Assert.check(currActions.size() == 0);
+        if (currActions.size() != 0) {
+            return;
+        }
 
         MyNode currNode = labyrinth[currY][currX];
 
@@ -293,8 +293,7 @@ class AgentFunction {
             }
         }
 
-        boolean pathExist = pathFinding();
-        Assert.check(pathExist);
+        pathFinding();
     }
 
     boolean pathFinding() {
@@ -360,7 +359,9 @@ class AgentFunction {
             }
         }
 
-        Assert.check(!onPathNodes.contains(null));
+        if (onPathNodes.contains(null)) {
+            return false;
+        }
 
         Collections.reverse(onPathNodes);
 
@@ -449,8 +450,6 @@ class AgentFunction {
             return DIR_BOTTOM;
         }
 
-        // error!
-        Assert.check(false);
         return DIR_LEFT;
     }
 
