@@ -90,6 +90,8 @@ public class AStar {
                     node.isWumpus = true;
                 }
 
+                node.isHaveArrow = frontier.isHaveArrow;
+
                 if (validNode(node, world, worldSize)) {
                     frontierList.add(node);
                     node.prev = frontier;
