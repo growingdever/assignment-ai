@@ -75,7 +75,7 @@ public class AStar {
                 }
             }
 
-            Node[] nextNodes = new Node[3];
+            Node[] nextNodes = new Node[4];
             setNextNodes(frontier, nextNodes);
             for (Node node : nextNodes) {
                 if (existNode(exploredList, node)) {
@@ -134,6 +134,9 @@ public class AStar {
 
             // right
             nextNodes[2] = new Node(curr.x, curr.y + 1, Node.Direction.TOP, curr.g + 2);
+
+            // back
+            nextNodes[3] = new Node(curr.x + 1, curr.y, Node.Direction.RIGHT, curr.g + 3);
         } else if (curr.dir == Node.Direction.TOP) {
             // forward
             nextNodes[0] = new Node(curr.x, curr.y + 1, Node.Direction.TOP, curr.g + 1);
@@ -143,6 +146,9 @@ public class AStar {
 
             // right
             nextNodes[2] = new Node(curr.x + 1, curr.y, Node.Direction.RIGHT, curr.g + 2);
+
+            // back
+            nextNodes[3] = new Node(curr.x, curr.y - 1, Node.Direction.BOTTOM, curr.g + 3);
         } else if (curr.dir == Node.Direction.RIGHT) {
             // forward
             nextNodes[0] = new Node(curr.x + 1, curr.y, Node.Direction.RIGHT, curr.g + 1);
@@ -152,6 +158,9 @@ public class AStar {
 
             // right
             nextNodes[2] = new Node(curr.x, curr.y - 1, Node.Direction.BOTTOM, curr.g + 2);
+
+            // back
+            nextNodes[3] = new Node(curr.x - 1, curr.y, Node.Direction.LEFT, curr.g + 3);
         } else if (curr.dir == Node.Direction.BOTTOM) {
             // forward
             nextNodes[0] = new Node(curr.x, curr.y - 1, Node.Direction.BOTTOM, curr.g + 1);
@@ -161,6 +170,9 @@ public class AStar {
 
             // right
             nextNodes[2] = new Node(curr.x - 1, curr.y, Node.Direction.LEFT, curr.g + 2);
+
+            // back
+            nextNodes[3] = new Node(curr.x, curr.y + 1, Node.Direction.TOP, curr.g + 3);
         }
     }
 
@@ -212,78 +224,138 @@ public class AStar {
 
             if (curr.dir == Node.Direction.LEFT) {
                 if (curr.x - 1 == next.x) {
+
                     if (next.isWumpus) {
                         stateSequence.add(Action.SHOOT);
                     }
+
                     stateSequence.add(Action.GO_FORWARD);
                 } else if (curr.y - 1 == next.y) {
                     stateSequence.add(Action.TURN_LEFT);
+
                     if (next.isWumpus) {
                         stateSequence.add(Action.SHOOT);
                     }
+
                     stateSequence.add(Action.GO_FORWARD);
                 } else if (curr.y + 1 == next.y) {
                     stateSequence.add(Action.TURN_RIGHT);
+
                     if (next.isWumpus) {
                         stateSequence.add(Action.SHOOT);
                     }
+
+                    stateSequence.add(Action.GO_FORWARD);
+                } else if (curr.x + 1 == next.x) {
+                    stateSequence.add(Action.TURN_RIGHT);
+                    stateSequence.add(Action.TURN_RIGHT);
+
+                    if (next.isWumpus) {
+                        stateSequence.add(Action.SHOOT);
+                    }
+
                     stateSequence.add(Action.GO_FORWARD);
                 }
             } else if (curr.dir == Node.Direction.TOP) {
                 if (curr.y + 1 == next.y) {
+
                     if (next.isWumpus) {
                         stateSequence.add(Action.SHOOT);
                     }
+
                     stateSequence.add(Action.GO_FORWARD);
                 } else if (curr.x - 1 == next.x) {
                     stateSequence.add(Action.TURN_LEFT);
+
                     if (next.isWumpus) {
                         stateSequence.add(Action.SHOOT);
                     }
+
                     stateSequence.add(Action.GO_FORWARD);
                 } else if (curr.x + 1 == next.x) {
                     stateSequence.add(Action.TURN_RIGHT);
+
                     if (next.isWumpus) {
                         stateSequence.add(Action.SHOOT);
                     }
+
+                    stateSequence.add(Action.GO_FORWARD);
+                } else if (curr.y - 1 == next.y) {
+                    stateSequence.add(Action.TURN_RIGHT);
+                    stateSequence.add(Action.TURN_RIGHT);
+
+                    if (next.isWumpus) {
+                        stateSequence.add(Action.SHOOT);
+                    }
+
                     stateSequence.add(Action.GO_FORWARD);
                 }
             } else if (curr.dir == Node.Direction.RIGHT) {
                 if (curr.x + 1 == next.x) {
+
                     if (next.isWumpus) {
                         stateSequence.add(Action.SHOOT);
                     }
+
                     stateSequence.add(Action.GO_FORWARD);
                 } else if (curr.y - 1 == next.y) {
                     stateSequence.add(Action.TURN_RIGHT);
+
                     if (next.isWumpus) {
                         stateSequence.add(Action.SHOOT);
                     }
+
                     stateSequence.add(Action.GO_FORWARD);
                 } else if (curr.y + 1 == next.y) {
                     stateSequence.add(Action.TURN_LEFT);
+
                     if (next.isWumpus) {
                         stateSequence.add(Action.SHOOT);
                     }
+
+                    stateSequence.add(Action.GO_FORWARD);
+                } else if (curr.x - 1 == next.x) {
+                    stateSequence.add(Action.TURN_RIGHT);
+                    stateSequence.add(Action.TURN_RIGHT);
+
+                    if (next.isWumpus) {
+                        stateSequence.add(Action.SHOOT);
+                    }
+
                     stateSequence.add(Action.GO_FORWARD);
                 }
             } else if (curr.dir == Node.Direction.BOTTOM) {
                 if (curr.y - 1 == next.y) {
+
                     if (next.isWumpus) {
                         stateSequence.add(Action.SHOOT);
                     }
+
                     stateSequence.add(Action.GO_FORWARD);
                 } else if (curr.x - 1 == next.x) {
                     stateSequence.add(Action.TURN_RIGHT);
+
                     if (next.isWumpus) {
                         stateSequence.add(Action.SHOOT);
                     }
+
                     stateSequence.add(Action.GO_FORWARD);
                 } else if (curr.x + 1 == next.x) {
                     stateSequence.add(Action.TURN_LEFT);
+
                     if (next.isWumpus) {
                         stateSequence.add(Action.SHOOT);
                     }
+
+                    stateSequence.add(Action.GO_FORWARD);
+                } else if (curr.y + 1 == next.y) {
+                    stateSequence.add(Action.TURN_RIGHT);
+                    stateSequence.add(Action.TURN_RIGHT);
+
+                    if (next.isWumpus) {
+                        stateSequence.add(Action.SHOOT);
+                    }
+
                     stateSequence.add(Action.GO_FORWARD);
                 }
             }
