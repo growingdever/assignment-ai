@@ -8,7 +8,7 @@ import java.util.Collections;
  */
 public class AStar {
 
-    public static void pathFinding(Environment wumpusEnvironment) {
+    public static void pathFinding(Environment wumpusEnvironment, ArrayList<Integer> stateSeq, ArrayList<Integer[]> path) {
         int worldSize = wumpusEnvironment.getWorldSize();
         char[][][] world = wumpusEnvironment.getWumpusWorld();
 
@@ -24,19 +24,12 @@ public class AStar {
         frontierList.add(startNode);
 
         Node last = start(world, worldSize, endNode, frontierList, exploredList);
-        ArrayList<Node> path = new ArrayList<>();
-        while (last != null) {
-            path.add(last);
-            last = last.prev;
-        }
-
-        Collections.reverse(path);
-        for (Node node : path) {
-            System.out.println(node);
-        }
+        ArrayList<Node> nodesOnPath = getPath(last);
+        fillStateSequence(nodesOnPath, stateSeq);
+        fillPathSequence(nodesOnPath, path);
     }
 
-    public static void findStartLocation(char[][][] world, int worldSize, Node node) {
+    static void findStartLocation(char[][][] world, int worldSize, Node node) {
         for (int i = 0; i < worldSize; i ++) {
             for (int j = 0; j < worldSize; j ++) {
                 char agent = world[i][j][3];
@@ -50,7 +43,7 @@ public class AStar {
         }
     }
 
-    public static void findGoalLocation(char[][][] world, int worldSize, Node node) {
+    static void findGoalLocation(char[][][] world, int worldSize, Node node) {
         for (int i = 0; i < worldSize; i ++) {
             for (int j = 0; j < worldSize; j ++) {
                 if (world[i][j][2] == 'G') {
@@ -61,7 +54,7 @@ public class AStar {
         }
     }
 
-    private static Node start(char[][][] world, int worldSize, Node endNode, ArrayList<Node> frontierList, ArrayList<Node> exploredList) {
+    static Node start(char[][][] world, int worldSize, Node endNode, ArrayList<Node> frontierList, ArrayList<Node> exploredList) {
         int currOptimal = Integer.MAX_VALUE;
         Node optimalNode = null;
 
@@ -174,13 +167,86 @@ public class AStar {
         return !(percepts[0] == 'P') && !(percepts[1] == 'W');
     }
 
-    boolean goalTest(char[][][] world, Node node) {
-        char[] percepts = world[node.y][node.x];
-        return percepts[2] == 'G';
-    }
-
     static int heuristic(Node endNode, Node node) {
         return Math.abs(endNode.x - node.x) + Math.abs(endNode.y - node.y);
+    }
+
+    static ArrayList<Node> getPath(Node last) {
+        ArrayList<Node> nodesOnPath = new ArrayList<>();
+        while (last != null) {
+            nodesOnPath.add(last);
+            last = last.prev;
+        }
+
+        Collections.reverse(nodesOnPath);
+        for (Node node : nodesOnPath) {
+            System.out.println(node);
+        }
+
+        return nodesOnPath;
+    }
+
+    static void fillStateSequence(ArrayList<Node> nodesOnPath, ArrayList<Integer> stateSequence) {
+        stateSequence.add(Action.START_TRIAL);
+
+        for (int i = 0; i < nodesOnPath.size() - 1; i ++) {
+            Node curr = nodesOnPath.get(i);
+            Node next = nodesOnPath.get(i + 1);
+
+            if (curr.dir == Node.Direction.LEFT) {
+                if (curr.x - 1 == next.x) {
+                    stateSequence.add(Action.GO_FORWARD);
+                } else if (curr.y - 1 == next.y) {
+                    stateSequence.add(Action.TURN_LEFT);
+                    stateSequence.add(Action.GO_FORWARD);
+                } else if (curr.y + 1 == next.y) {
+                    stateSequence.add(Action.TURN_RIGHT);
+                    stateSequence.add(Action.GO_FORWARD);
+                }
+            } else if (curr.dir == Node.Direction.TOP) {
+                if (curr.y + 1 == next.y) {
+                    stateSequence.add(Action.GO_FORWARD);
+                } else if (curr.x - 1 == next.x) {
+                    stateSequence.add(Action.TURN_LEFT);
+                    stateSequence.add(Action.GO_FORWARD);
+                } else if (curr.x + 1 == next.x) {
+                    stateSequence.add(Action.TURN_RIGHT);
+                    stateSequence.add(Action.GO_FORWARD);
+                }
+            } else if (curr.dir == Node.Direction.RIGHT) {
+                if (curr.x + 1 == next.x) {
+                    stateSequence.add(Action.GO_FORWARD);
+                } else if (curr.y - 1 == next.y) {
+                    stateSequence.add(Action.TURN_RIGHT);
+                    stateSequence.add(Action.GO_FORWARD);
+                } else if (curr.y + 1 == next.y) {
+                    stateSequence.add(Action.TURN_LEFT);
+                    stateSequence.add(Action.GO_FORWARD);
+                }
+            } else if (curr.dir == Node.Direction.BOTTOM) {
+                if (curr.y - 1 == next.y) {
+                    stateSequence.add(Action.GO_FORWARD);
+                } else if (curr.x - 1 == next.x) {
+                    stateSequence.add(Action.TURN_RIGHT);
+                    stateSequence.add(Action.GO_FORWARD);
+                } else if (curr.x + 1 == next.x) {
+                    stateSequence.add(Action.TURN_LEFT);
+                    stateSequence.add(Action.GO_FORWARD);
+                }
+            }
+        }
+
+        stateSequence.add(Action.GRAB);
+        stateSequence.add(Action.END_TRIAL);
+    }
+
+    static void fillPathSequence(ArrayList<Node> nodesOnPath, ArrayList<Integer[]> path) {
+        for (Node node : nodesOnPath) {
+            Integer[] location = new Integer[2];
+            location[0] = node.y;
+            location[1] = node.x;
+            path.add(location);
+        }
     }
 
 }

@@ -47,8 +47,7 @@ class Simulation {
         environment.placeAgent(agent);
         environment.printEnvironment();
 
-        AStar.pathFinding(wumpusEnvironment);
-        System.exit(1);
+        AStar.pathFinding(wumpusEnvironment, StateSeq, path);
 	}
 
 	public String getStateSeq()
