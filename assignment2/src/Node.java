@@ -28,24 +28,19 @@ public class Node {
     int x, y;
     Direction dir;
     int g;
+    boolean isWumpus;
+    boolean isHaveArrow;
 
     public Node(int x, int y, Direction dir, int g) {
         this.x = x;
         this.y = y;
         this.dir = dir;
         this.g = g;
+        this.isHaveArrow = true;
     }
 
     public boolean isSameLocation(Node node) {
         return this.x == node.x && this.y == node.y;
-    }
-
-    public Node getPrev() {
-        return prev;
-    }
-
-    public void setPrev(Node prev) {
-        this.prev = prev;
     }
 
     @Override
