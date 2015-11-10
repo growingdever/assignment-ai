@@ -1,7 +1,10 @@
+import java.util.Comparator;
+
 /**
  * Created by loki on 2015. 11. 9..
  */
-public class Node {
+public class Node implements Comparator<Node> {
+
     public enum Direction {
         LEFT,
         TOP,
@@ -27,7 +30,7 @@ public class Node {
     Node prev;
     int x, y;
     Direction dir;
-    int g;
+    int f, g, h;
     boolean isWumpus;
     boolean isHaveArrow;
 
@@ -47,4 +50,10 @@ public class Node {
     public String toString() {
         return String.format("(%d, %d, %d)", x, y, g);
     }
+
+    @Override
+    public int compare(Node o1, Node o2) {
+        return o1.f - o2.f;
+    }
+
 }

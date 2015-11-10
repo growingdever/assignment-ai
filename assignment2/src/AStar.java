@@ -16,12 +16,7 @@ public class AStar {
         findStartLocation(world, worldSize, startNode);
         findGoalLocation(world, worldSize, endNode);
 
-        ArrayList<Node> frontierList = new ArrayList<>();
-        ArrayList<Node> exploredList = new ArrayList<>();
-
-        frontierList.add(startNode);
-
-        Node last = start(world, worldSize, endNode, frontierList, exploredList);
+        Node last = start(world, worldSize, startNode, endNode);
         ArrayList<Node> nodesOnPath = getPath(last);
         fillStateSequence(nodesOnPath, stateSeq);
         fillPathSequence(nodesOnPath, path);
@@ -52,7 +47,12 @@ public class AStar {
         }
     }
 
-    static Node start(char[][][] world, int worldSize, Node endNode, ArrayList<Node> frontierList, ArrayList<Node> exploredList) {
+    static Node start(char[][][] world, int worldSize, Node startNode, Node endNode) {
+        ArrayList<Node> frontierList = new ArrayList<>();
+        ArrayList<Node> exploredList = new ArrayList<>();
+
+        frontierList.add(startNode);
+
         int currOptimal = Integer.MAX_VALUE;
         Node optimalNode = null;
 
@@ -91,6 +91,8 @@ public class AStar {
                 }
 
                 node.isHaveArrow = frontier.isHaveArrow;
+                node.h = heuristic(endNode, node);
+                node.f = node.g + node.h;
 
                 if (validNode(node, world, worldSize)) {
                     frontierList.add(node);
