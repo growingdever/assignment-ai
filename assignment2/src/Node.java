@@ -1,9 +1,7 @@
-import java.util.Comparator;
-
 /**
  * Created by loki on 2015. 11. 9..
  */
-public class Node implements Comparator<Node> {
+public class Node implements Comparable<Node> {
 
     public enum Direction {
         LEFT,
@@ -52,8 +50,8 @@ public class Node implements Comparator<Node> {
     }
 
     @Override
-    public int compare(Node o1, Node o2) {
-        return o1.f - o2.f;
+    public int compareTo(Node o) {
+        return this.f - o.f;
     }
 
 }

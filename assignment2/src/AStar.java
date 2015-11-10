@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.PriorityQueue;
 
 /**
  * Created by loki on 15. 11. 9..
@@ -48,21 +49,17 @@ public class AStar {
     }
 
     static Node start(char[][][] world, int worldSize, Node startNode, Node endNode) {
-        ArrayList<Node> frontierList = new ArrayList<>();
-        ArrayList<Node> exploredList = new ArrayList<>();
-
-        frontierList.add(startNode);
+        PriorityQueue<Node> frontiersPriorityQueue = new PriorityQueue<>();
+        frontiersPriorityQueue.add(startNode);
 
         int currOptimal = Integer.MAX_VALUE;
         Node optimalNode = null;
 
-        while (frontierList.size() > 0) {
-            Node frontier = getOptimalFrontier(frontierList, endNode, currOptimal);
-            if (frontier == null) {
-                break;
-            }
-            frontierList.remove(frontier);
-            exploredList.add(frontier);
+        boolean[][] visit = new boolean[worldSize + 1][worldSize + 1];
+
+        while (frontiersPriorityQueue.size() > 0) {
+            Node frontier = frontiersPriorityQueue.poll();
+            visit[frontier.y][frontier.x] = true;
 
             if (endNode.isSameLocation(frontier)) {
                 if (optimalNode == null) {
@@ -73,16 +70,18 @@ public class AStar {
                     currOptimal = optimalNode.g;
                     optimalNode = frontier;
                 }
+
+                continue;
             }
 
             Node[] nextNodes = new Node[4];
             setNextNodes(frontier, nextNodes);
             for (Node node : nextNodes) {
-                if (existNode(exploredList, node)) {
+                if (outOfWorld(node, world, worldSize)) {
                     continue;
                 }
 
-                if (outOfWorld(node, world, worldSize)) {
+                if (visit[node.y][node.x]) {
                     continue;
                 }
 
@@ -95,13 +94,13 @@ public class AStar {
                 node.f = node.g + node.h;
 
                 if (validNode(node, world, worldSize)) {
-                    frontierList.add(node);
+                    frontiersPriorityQueue.add(node);
                     node.prev = frontier;
                 } else {
                     if (frontier.isHaveArrow) {
                         node.g += 2;
                         node.isHaveArrow = false;
-                        frontierList.add(node);
+                        frontiersPriorityQueue.add(node);
                         node.prev = frontier;
                     }
                 }
@@ -109,23 +108,6 @@ public class AStar {
         }
 
         return optimalNode;
-    }
-
-    static Node getOptimalFrontier(ArrayList<Node> frontierList, Node endNode, int currOptimal) {
-        Node optimal = null;
-        int min = Integer.MAX_VALUE;
-
-        for (Node node : frontierList) {
-            int h = heuristic(endNode, node);
-
-            int est = node.g + h;
-            if (est < currOptimal && est < min) {
-                min = est;
-                optimal = node;
-            }
-        }
-
-        return optimal;
     }
 
     static void setNextNodes(Node curr, Node[] nextNodes) {
