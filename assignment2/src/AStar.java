@@ -55,12 +55,18 @@ public class AStar {
         int currOptimal = Integer.MAX_VALUE;
         Node optimalNode = null;
 
-        boolean[][] visit = new boolean[worldSize + 1][worldSize + 1];
-        visit[startNode.y][startNode.x] = true;
+        int[][] optimals = new int[worldSize + 1][worldSize + 1];
+        for (int i = 0; i <= worldSize; i ++) {
+            for (int j = 0; j <= worldSize; j ++) {
+                optimals[i][j] = Integer.MAX_VALUE;
+            }
+        }
+
+        optimals[startNode.y][startNode.x] = 0;
 
         while (frontiersPriorityQueue.size() > 0) {
             Node frontier = frontiersPriorityQueue.poll();
-            visit[frontier.y][frontier.x] = true;
+            optimals[frontier.y][frontier.x] = frontier.f;
 
             if (endNode.isSameLocation(frontier)) {
                 if (optimalNode == null) {
@@ -82,10 +88,6 @@ public class AStar {
                     continue;
                 }
 
-                if (visit[node.y][node.x]) {
-                    continue;
-                }
-
                 if (world[node.y][node.x][1] == 'W') {
                     node.isWumpus = true;
                 }
@@ -93,6 +95,10 @@ public class AStar {
                 node.isHaveArrow = frontier.isHaveArrow;
                 node.h = heuristic(endNode, node);
                 node.f = node.g + node.h;
+
+                if (optimals[node.y][node.x] < node.f) {
+                    continue;
+                }
 
                 if (validNode(node, world, worldSize)) {
                     frontiersPriorityQueue.add(node);
