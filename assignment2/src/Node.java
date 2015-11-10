@@ -46,7 +46,7 @@ public class Node implements Comparable<Node> {
 
     @Override
     public String toString() {
-        return String.format("(%d, %d, %d)", x, y, g);
+        return String.format("(%d, %d, %d, %d, %d)", x, y, g, h, f);
     }
 
     @Override

@@ -56,6 +56,7 @@ public class AStar {
         Node optimalNode = null;
 
         boolean[][] visit = new boolean[worldSize + 1][worldSize + 1];
+        visit[startNode.y][startNode.x] = true;
 
         while (frontiersPriorityQueue.size() > 0) {
             Node frontier = frontiersPriorityQueue.poll();
@@ -183,7 +184,10 @@ public class AStar {
     }
 
     static int heuristic(Node endNode, Node node) {
-        return Math.abs(endNode.x - node.x) + Math.abs(endNode.y - node.y);
+        int diffX = endNode.x - node.x;
+        int diffY = endNode.y - node.y;
+//        return (int)Math.sqrt(diffX * diffX + diffY * diffY);
+        return Math.abs(diffX) + Math.abs(diffY);
     }
 
     static ArrayList<Node> getPath(Node last) {
