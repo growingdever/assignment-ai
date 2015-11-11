@@ -66,7 +66,6 @@ public class AStar {
 
         while (frontiersPriorityQueue.size() > 0) {
             Node frontier = frontiersPriorityQueue.poll();
-            optimals[frontier.y][frontier.x] = frontier.f;
 
             if (endNode.isSameLocation(frontier)) {
                 if (optimalNode == null) {
@@ -96,21 +95,78 @@ public class AStar {
                 node.h = heuristic(endNode, node);
                 node.f = node.g + node.h;
 
-                if (optimals[node.y][node.x] < node.f) {
+                if (optimals[node.y][node.x] <= node.f) {
                     continue;
                 }
 
                 if (validNode(node, world, worldSize)) {
                     frontiersPriorityQueue.add(node);
                     node.prev = frontier;
+
+                    optimals[frontier.y][frontier.x] = frontier.f;
                 } else {
                     if (frontier.isHaveArrow) {
                         node.g += 2;
+                        node.f += 2;
                         node.isHaveArrow = false;
                         frontiersPriorityQueue.add(node);
                         node.prev = frontier;
+
+                        optimals[frontier.y][frontier.x] = frontier.f;
                     }
                 }
+            }
+
+            // add forward nodes
+            int offset = 2;
+            Node prev = null;
+            for (int i = 0; i < nextNodes.length; i ++) {
+                if (frontier.dir == nextNodes[i].dir) {
+                    prev = nextNodes[i];
+                    break;
+                }
+            }
+
+            while(true) {
+                Node forwardNode = new Node(frontier.x, frontier.y, frontier.dir, frontier.g + offset);
+                switch (frontier.dir) {
+                    case LEFT:
+                        forwardNode.x -= offset;
+                        break;
+                    case RIGHT:
+                        forwardNode.x += offset;
+                        break;
+                    case TOP:
+                        forwardNode.y += offset;
+                        break;
+                    case BOTTOM:
+                        forwardNode.y -= offset;
+                        break;
+                }
+
+                if (outOfWorld(forwardNode, world, worldSize)) {
+                    break;
+                }
+
+                if (!validNode(forwardNode, world, worldSize)) {
+                    break;
+                }
+
+                forwardNode.isHaveArrow = frontier.isHaveArrow;
+                forwardNode.h = heuristic(endNode, forwardNode);
+                forwardNode.f = forwardNode.g + forwardNode.h;
+
+                if (optimals[forwardNode.y][forwardNode.x] <= forwardNode.f) {
+                    break;
+                }
+
+                forwardNode.prev = prev;
+                prev = forwardNode;
+
+                frontiersPriorityQueue.add(forwardNode);
+                optimals[forwardNode.y][forwardNode.x] = forwardNode.f;
+
+                offset ++;
             }
         }
 
@@ -204,8 +260,16 @@ public class AStar {
         }
 
         Collections.reverse(nodesOnPath);
-        for (Node node : nodesOnPath) {
-            System.out.println(node);
+
+        if (nodesOnPath.size() > 10) {
+            System.out.println("...");
+            for (int i = nodesOnPath.size() - 10; i < nodesOnPath.size(); i ++) {
+                System.out.println(nodesOnPath.get(i));
+            }
+        } else {
+            for (Node node : nodesOnPath) {
+                System.out.println(node);
+            }
         }
 
         return nodesOnPath;
