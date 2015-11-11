@@ -80,100 +80,21 @@ public class AStar {
                 continue;
             }
 
-            Node[] nextNodes = new Node[4];
-            setNextNodes(frontier, nextNodes);
-            for (Node node : nextNodes) {
-                if (outOfWorld(node, world, worldSize)) {
-                    continue;
-                }
+            // add neighbors of frontier
+            Node[] neighbors = new Node[4];
+            setNeighbors(frontier, neighbors);
+            addNeighborsToFrontierQueue(neighbors, frontiersPriorityQueue,
+                    frontier, endNode, world, worldSize, optimals);
 
-                if (world[node.y][node.x][1] == 'W') {
-                    node.isWumpus = true;
-                }
-
-                node.isHaveArrow = frontier.isHaveArrow;
-                node.h = heuristic(endNode, node);
-                node.f = node.g + node.h;
-
-                if (optimals[node.y][node.x] <= node.f) {
-                    continue;
-                }
-
-                if (validNode(node, world, worldSize)) {
-                    frontiersPriorityQueue.add(node);
-                    node.prev = frontier;
-
-                    optimals[frontier.y][frontier.x] = frontier.f;
-                } else {
-                    if (frontier.isHaveArrow) {
-                        node.g += 2;
-                        node.f += 2;
-                        node.isHaveArrow = false;
-                        frontiersPriorityQueue.add(node);
-                        node.prev = frontier;
-
-                        optimals[frontier.y][frontier.x] = frontier.f;
-                    }
-                }
-            }
-
-            // add forward nodes
-            int offset = 2;
-            Node prev = null;
-            for (int i = 0; i < nextNodes.length; i ++) {
-                if (frontier.dir == nextNodes[i].dir) {
-                    prev = nextNodes[i];
-                    break;
-                }
-            }
-
-            while(true) {
-                Node forwardNode = new Node(frontier.x, frontier.y, frontier.dir, frontier.g + offset);
-                switch (frontier.dir) {
-                    case LEFT:
-                        forwardNode.x -= offset;
-                        break;
-                    case RIGHT:
-                        forwardNode.x += offset;
-                        break;
-                    case TOP:
-                        forwardNode.y += offset;
-                        break;
-                    case BOTTOM:
-                        forwardNode.y -= offset;
-                        break;
-                }
-
-                if (outOfWorld(forwardNode, world, worldSize)) {
-                    break;
-                }
-
-                if (!validNode(forwardNode, world, worldSize)) {
-                    break;
-                }
-
-                forwardNode.isHaveArrow = frontier.isHaveArrow;
-                forwardNode.h = heuristic(endNode, forwardNode);
-                forwardNode.f = forwardNode.g + forwardNode.h;
-
-                if (optimals[forwardNode.y][forwardNode.x] <= forwardNode.f) {
-                    break;
-                }
-
-                forwardNode.prev = prev;
-                prev = forwardNode;
-
-                frontiersPriorityQueue.add(forwardNode);
-                optimals[forwardNode.y][forwardNode.x] = forwardNode.f;
-
-                offset ++;
-            }
+            // add forward nodes of frontier
+            addForwardNodes(neighbors, frontiersPriorityQueue,
+                    frontier, endNode, world, worldSize, optimals);
         }
 
         return optimalNode;
     }
 
-    static void setNextNodes(Node curr, Node[] nextNodes) {
+    static void setNeighbors(Node curr, Node[] nextNodes) {
         if (curr.dir == Node.Direction.LEFT) {
             // forward
             nextNodes[0] = new Node(curr.x - 1, curr.y, Node.Direction.LEFT, curr.g + 1);
@@ -225,14 +146,97 @@ public class AStar {
         }
     }
 
-    static boolean existNode(ArrayList<Node> exploredList, Node node) {
-        for (Node node2 : exploredList) {
-            if (node.x == node2.x && node.y == node2.y) {
-                return true;
+    static void addNeighborsToFrontierQueue(Node[] neighbors, PriorityQueue<Node> pq,
+                                            Node frontier, Node endNode,
+                                            char[][][] world, int worldSize, int[][] optimals) {
+        for (Node node : neighbors) {
+            if (outOfWorld(node, world, worldSize)) {
+                continue;
+            }
+
+            if (world[node.y][node.x][1] == 'W') {
+                node.isWumpus = true;
+            }
+
+            node.isHaveArrow = frontier.isHaveArrow;
+            node.h = heuristic(endNode, node);
+            node.f = node.g + node.h;
+
+            if (optimals[node.y][node.x] <= node.f) {
+                continue;
+            }
+
+            if (validNode(node, world, worldSize)) {
+                pq.add(node);
+                node.prev = frontier;
+
+                optimals[frontier.y][frontier.x] = frontier.f;
+            } else {
+                if (frontier.isHaveArrow) {
+                    node.g += 2;
+                    node.f += 2;
+                    node.isHaveArrow = false;
+                    pq.add(node);
+                    node.prev = frontier;
+
+                    optimals[frontier.y][frontier.x] = frontier.f;
+                }
+            }
+        }
+    }
+
+    static void addForwardNodes(Node[] neighbors, PriorityQueue<Node> pq,
+                                Node frontier, Node endNode, char[][][] world, int worldSize, int[][] optimals) {
+        int offset = 2;
+        Node prev = null;
+        for (int i = 0; i < neighbors.length; i ++) {
+            if (frontier.dir == neighbors[i].dir) {
+                prev = neighbors[i];
+                break;
             }
         }
 
-        return false;
+        while(true) {
+            Node forwardNode = new Node(frontier.x, frontier.y, frontier.dir, frontier.g + offset);
+            switch (frontier.dir) {
+                case LEFT:
+                    forwardNode.x -= offset;
+                    break;
+                case RIGHT:
+                    forwardNode.x += offset;
+                    break;
+                case TOP:
+                    forwardNode.y += offset;
+                    break;
+                case BOTTOM:
+                    forwardNode.y -= offset;
+                    break;
+            }
+
+            if (outOfWorld(forwardNode, world, worldSize)) {
+                break;
+            }
+
+            if (!validNode(forwardNode, world, worldSize)) {
+                break;
+            }
+
+            forwardNode.isHaveArrow = frontier.isHaveArrow;
+            forwardNode.h = heuristic(endNode, forwardNode);
+            forwardNode.f = forwardNode.g + forwardNode.h;
+
+            if (optimals[forwardNode.y][forwardNode.x] <= forwardNode.f) {
+                break;
+            }
+
+            forwardNode.prev = prev;
+            prev = forwardNode;
+
+            pq.add(forwardNode);
+            optimals[forwardNode.y][forwardNode.x] = forwardNode.f;
+
+            offset ++;
+        }
     }
 
     static boolean outOfWorld(Node node, char[][][] world, int worldSize) {
