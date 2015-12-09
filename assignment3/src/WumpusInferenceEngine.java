@@ -136,7 +136,14 @@ public class WumpusInferenceEngine {
             }
         }
 
-        ArrayList<PLWumpusWorldSymbol> clause = new ArrayList<>();
+        // there isn't B at neighbor room, there isn't pit
+        ArrayList<PLWumpusWorldSymbol> clause2 = new ArrayList<>();
+        PLWumpusWorldSymbol symbol2 = new PLWumpusWorldSymbol(PLWumpusWorldSymbol.SymbolType.PIT, target_x, target_y);
+        symbol2.setNegative();
+        clause2.add(symbol2);
+        kb.addClause(clause2);
+
+        ArrayList<PLWumpusWorldSymbol> clause3 = new ArrayList<>();
         for (int i = 0; i < OFFSET_X.length; i++) {
             int x = target_x + OFFSET_X[i];
             int y = target_y + OFFSET_Y[i];
@@ -148,20 +155,8 @@ public class WumpusInferenceEngine {
 
             PLWumpusWorldSymbol symbol = new PLWumpusWorldSymbol(PLWumpusWorldSymbol.SymbolType.PIT, x, y);
             symbol.setNegative();
-            clause.add(symbol);
+            clause3.add(symbol);
         }
-        kb.addClause(clause);
-
-        ArrayList<PLWumpusWorldSymbol> clause2 = new ArrayList<>();
-        PLWumpusWorldSymbol symbol2 = new PLWumpusWorldSymbol(PLWumpusWorldSymbol.SymbolType.BREEZE, target_x, target_y);
-        symbol2.setNegative();
-        clause2.add(symbol2);
-        kb.addClause(clause2);
-
-        ArrayList<PLWumpusWorldSymbol> clause3 = new ArrayList<>();
-        PLWumpusWorldSymbol symbol3 = new PLWumpusWorldSymbol(PLWumpusWorldSymbol.SymbolType.PIT, target_x, target_y);
-        symbol3.setNegative();
-        clause3.add(symbol3);
         kb.addClause(clause3);
     }
 
@@ -228,15 +223,15 @@ public class WumpusInferenceEngine {
 
     boolean runResolutionInference(ArrayList< ArrayList<PLWumpusWorldSymbol> > alpha) {
         ArrayList< ArrayList<PLWumpusWorldSymbol> > clauses = Util.cloneClauses(kb.getClauses());
-        ArrayList< ArrayList<PLWumpusWorldSymbol> > originAlpha = Util.cloneClauses(alpha);
 
         // KB ^ ~a
         // below is invalid
-        for (ArrayList<PLWumpusWorldSymbol> clause : alpha) {
+        for (ArrayList<PLWumpusWorldSymbol> alpha_clause : alpha) {
             ArrayList<PLWumpusWorldSymbol> new_clause = new ArrayList<>();
-            for (PLWumpusWorldSymbol s : clause) {
-                s.setNegative();
-                new_clause.add(s);
+            for (PLWumpusWorldSymbol s : alpha_clause) {
+                PLWumpusWorldSymbol clone = new PLWumpusWorldSymbol(s);
+                clone.setNegative();
+                new_clause.add(clone);
             }
             clauses.add(new_clause);
         }
@@ -267,16 +262,10 @@ public class WumpusInferenceEngine {
                         ArrayList< ArrayList<PLWumpusWorldSymbol> > resolvents = runResolution(clause1, clause2);
                         for (ArrayList<PLWumpusWorldSymbol> resolved : resolvents) {
                             if (resolved.size() == 0) {
-                                ArrayList< ArrayList<PLWumpusWorldSymbol> > resolvents2 = runResolution(clause1, clause2);
                                 return true;
                             }
 
-                            for (k = 0; k < new_clauses.size(); k ++) {
-                                if (compareSortedClause(new_clauses.get(k), resolved)) {
-                                    break;
-                                }
-                            }
-                            if (k == new_clauses.size()) {
+                            if (!Util.existSameSortedClause(new_clauses, resolved)) {
                                 new_clauses.add(resolved);
                             }
                         }
@@ -284,23 +273,20 @@ public class WumpusInferenceEngine {
                 }
             }
 
+            // there is no new resolved clause
             if (new_clauses.size() == 0) {
                 return false;
             }
 
+
+            int prevSize = clauses.size();
 
             // union origin clauses and new clauses
             {
                 ArrayList<Integer> newClauseIndices = new ArrayList<>();
                 for (i = 0; i < new_clauses.size(); i ++) {
                     ArrayList<PLWumpusWorldSymbol> new_clause = new_clauses.get(i);
-                    for (j = 0; j < clauses.size(); j++) {
-                        if (compareSortedClause(clauses.get(j), new_clause)) {
-                            break;
-                        }
-                    }
-
-                    if (j == clauses.size()) {
+                    if (!Util.existSameSortedClause(clauses, new_clause)) {
                         newClauseIndices.add(i);
                     }
                 }
@@ -310,7 +296,14 @@ public class WumpusInferenceEngine {
                 }
             }
 
-            printClauses(clauses);
+            int currSize = clauses.size();
+
+            // there is no new resolved clause
+            if (prevSize == currSize) {
+                return false;
+            }
+
+//            printClauses(clauses);
         }
 
 //        return false;
@@ -354,7 +347,7 @@ public class WumpusInferenceEngine {
 
                 PLWumpusWorldSymbol oppositeSymbol = c2.get(oppositeIndex);
                 for (PLWumpusWorldSymbol symbol : c1) {
-                    if (symbol.isSameTarget(oppositeSymbol) && symbol.isNegation != oppositeSymbol.isNegation) {
+                    if (symbol.isSameTarget(oppositeSymbol) && !Util.existSymbolInClause(new_clause, symbol)) {
                         continue;
                     }
 
@@ -367,7 +360,7 @@ public class WumpusInferenceEngine {
 
                 Util.addAllExceptIndex(new_clause, c2, oppositeIndex);
 
-                if (new_clause.size() > c1.size() + c2.size() - 2) {
+                if (new_clause.size() > c1.size() + c2.size() - 2 && new_clause.size() > 1) {
                     System.err.println("resolution error");
                     System.exit(1000);
                 }
@@ -387,58 +380,13 @@ public class WumpusInferenceEngine {
                     }
                 }
 
-                boolean isExistSameClause = false;
-                for (ArrayList<PLWumpusWorldSymbol> clause : result) {
-                    if (compareSortedClause(clause, new_clause)) {
-                        isExistSameClause = true;
-                    }
-                }
-
-                if (!isExistSameClause) {
+                if (!Util.existSameSortedClause(result, new_clause)) {
                     result.add(new_clause);
                 }
             }
         }
 
         return result;
-    }
-
-    boolean compareClause(ArrayList<PLWumpusWorldSymbol> clause1, ArrayList<PLWumpusWorldSymbol> clause2) {
-        if (clause1.size() != clause2.size()) {
-            return false;
-        }
-
-        int i, j;
-        for (i = 0; i < clause1.size(); i ++) {
-            PLWumpusWorldSymbol symbol1 = clause1.get(i);
-            boolean exist = false;
-            for (j = 0; j < clause2.size(); j ++) {
-                PLWumpusWorldSymbol symbol2 = clause2.get(i);
-                if (symbol1.equals(symbol2)) {
-                    exist = true;
-                }
-            }
-
-            if (!exist) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    boolean compareSortedClause(ArrayList<PLWumpusWorldSymbol> clause1, ArrayList<PLWumpusWorldSymbol> clause2) {
-        if (clause1.size() != clause2.size()) {
-            return false;
-        }
-
-        for (int i = 0; i < clause1.size(); i++) {
-            if (!clause1.get(i).equals(clause2.get(i))) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     ArrayList< ArrayList<PLWumpusWorldSymbol> > parseQueryLine(String line) {
