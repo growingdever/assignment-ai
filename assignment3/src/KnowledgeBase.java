@@ -21,16 +21,4 @@ public class KnowledgeBase {
         return clauses;
     }
 
-    public ArrayList<ArrayList<PLWumpusWorldSymbol>> getClausesClone() {
-        ArrayList< ArrayList<PLWumpusWorldSymbol> > cloneClauses = new ArrayList<>();
-        for (ArrayList<PLWumpusWorldSymbol> clause : clauses) {
-            ArrayList<PLWumpusWorldSymbol> cloneClause = new ArrayList<>();
-            for (PLWumpusWorldSymbol symbol : clause) {
-                cloneClause.add(new PLWumpusWorldSymbol(symbol));
-            }
-            cloneClauses.add(cloneClause);
-        }
-
-        return cloneClauses;
-    }
 }

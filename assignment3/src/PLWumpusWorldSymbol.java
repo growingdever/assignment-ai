@@ -9,8 +9,17 @@ public class PLWumpusWorldSymbol implements Comparable<PLWumpusWorldSymbol> {
         }
 
         int result = this.y - o.y;
+
         if (result == 0) {
             result = this.x - o.x;
+        }
+
+        if (result == 0) {
+            if (this.isNegation && !o.isNegation) {
+                result = 1;
+            } else if (!this.isNegation && o.isNegation) {
+                result = -1;
+            }
         }
 
         return result;
