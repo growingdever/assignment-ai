@@ -44,6 +44,65 @@ public class Util {
         return false;
     }
 
+    public static boolean existSameClause(ArrayList< ArrayList<PLWumpusWorldSymbol> > clauses, ArrayList<PLWumpusWorldSymbol> targetClause) {
+        for (ArrayList<PLWumpusWorldSymbol> clause : clauses) {
+            if (Util.compareClause(clause, targetClause)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static boolean existSameSortedClause(ArrayList< ArrayList<PLWumpusWorldSymbol> > clauses, ArrayList<PLWumpusWorldSymbol> targetClause) {
+        for (ArrayList<PLWumpusWorldSymbol> clause : clauses) {
+            if (Util.compareSortedClause(clause, targetClause)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static boolean compareClause(ArrayList<PLWumpusWorldSymbol> clause1, ArrayList<PLWumpusWorldSymbol> clause2) {
+        if (clause1.size() != clause2.size()) {
+            return false;
+        }
+
+        int i, j;
+        for (i = 0; i < clause1.size(); i ++) {
+            PLWumpusWorldSymbol symbol1 = clause1.get(i);
+            boolean exist = false;
+            for (j = 0; j < clause2.size(); j ++) {
+                PLWumpusWorldSymbol symbol2 = clause2.get(i);
+                if (symbol1.equals(symbol2)) {
+                    exist = true;
+                }
+            }
+
+            if (!exist) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public static boolean compareSortedClause(ArrayList<PLWumpusWorldSymbol> clause1, ArrayList<PLWumpusWorldSymbol> clause2) {
+        if (clause1.size() != clause2.size()) {
+            return false;
+        }
+
+        for (int i = 0; i < clause1.size(); i++) {
+            if (!clause1.get(i).equals(clause2.get(i))) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+
     public static void addAllExceptIndex(ArrayList<PLWumpusWorldSymbol> dest, ArrayList<PLWumpusWorldSymbol> src, int except) {
         for (int i = 0; i < src.size(); i ++) {
             if (i == except) {
