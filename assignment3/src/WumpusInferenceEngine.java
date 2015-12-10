@@ -183,11 +183,9 @@ public class WumpusInferenceEngine {
                     break;
                 }
 
-                CNF clauses = parseQueryLine(line);
+                CNF clauses = Parser.parseQueryLine(line);
                 boolean result = runResolutionInference(clauses);
-                System.out.println(buildClausesString(clauses));
                 System.out.println(result);
-                System.out.println();
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -266,50 +264,6 @@ public class WumpusInferenceEngine {
             if (prevSize == currSize) {
                 return false;
             }
-        }
-    }
-
-    CNF parseQueryLine(String line) {
-        // skip line number suffix
-        line = line.substring(2);
-
-        int countAND = 0;
-        int countOR = 0;
-        for (int i = 0; i < line.length(); i ++) {
-            if (line.charAt(i) == '^') {
-                countAND++;
-            } else if (line.charAt(i) == 'V') {
-                countOR++;
-            }
-        }
-
-        String[] tokens = line.split("\\^|V");
-        if (countAND != 0 && countOR != 0 && tokens.length > 1) {
-            System.err.println("CNF 혹은 DNF만 처리 가능");
-            System.exit(0);
-        }
-
-        if (countAND > 0) {
-            CNF cnf = new CNF();
-            for (String token : tokens) {
-                Clause clause = new Clause();
-                PLWumpusWorldSymbol symbol = Parser.parseLiteral(token);
-                clause.add(symbol);
-                cnf.add(clause);
-            }
-
-            return cnf;
-        } else {
-            CNF cnf = new CNF();
-            Clause clause = new Clause();
-            cnf.add(clause);
-
-            for (String token : tokens) {
-                PLWumpusWorldSymbol symbol = Parser.parseLiteral(token);
-                clause.add(symbol);
-            }
-
-            return cnf;
         }
     }
 

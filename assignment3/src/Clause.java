@@ -56,6 +56,14 @@ public class Clause implements Comparable<Clause> {
         }
     }
 
+    public void union(Clause c) {
+        for (int i = 0; i < c.size(); i ++) {
+            if (!this.exist(c.get(i))) {
+                this.add(c.get(i));
+            }
+        }
+    }
+
     public void clear() {
         this.literals.clear();
     }

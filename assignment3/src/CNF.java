@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Collections;
 
 /**
  * Created by loki on 2015. 12. 10..
@@ -61,6 +62,32 @@ public class CNF {
         for (int i = 0; i < cnf.size(); i ++) {
             this.add(cnf.get(i));
         }
+    }
+
+    public void union(CNF cnf) {
+        for (int i = 0; i < cnf.size(); i ++) {
+            if (!this.exist(cnf.get(i))) {
+                this.add(cnf.get(i));
+            }
+        }
+    }
+
+    public void disjunction(CNF cnf) {
+        ArrayList<Clause> clauses = new ArrayList<>();
+
+        for (int i = 0; i < this.clauses.size(); i ++) {
+            Clause newClause = new Clause();
+            newClause.addAll(this.clauses.get(i));
+
+            for (int j = 0; j < cnf.clauses.size(); j ++) {
+                newClause.union(cnf.clauses.get(j));
+            }
+
+            clauses.add(newClause);;
+        }
+
+        Collections.sort(clauses);
+        this.clauses = clauses;
     }
 
     public Clause get(int i) {

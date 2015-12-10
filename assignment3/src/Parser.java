@@ -17,23 +17,22 @@ public class Parser {
             String rhs = line.substring(pos + 3);
             CNF cnf1 = parseFormula(lhs);
             CNF cnf2 = parseFormula(rhs);
-            System.out.println(cnf1 + " <=> " + cnf2);
+
+            CNF result = new CNF();
+            result.add(CNF.convertFromImply(cnf1, cnf2));
+            result.add(CNF.convertFromImply(cnf2, cnf1));
+
+            return result;
         } else if (line.contains("=>")) {
             int pos = line.indexOf("=>");
             String lhs = line.substring(0, pos);
             String rhs = line.substring(pos + 2);
+
             CNF cnf1 = parseFormula(lhs);
             CNF cnf2 = parseFormula(rhs);
-            CNF result = CNF.convertFromImply(cnf1, cnf2);
-            System.out.println(cnf1 + " => " + cnf2);
-            System.out.println(result);
-        } else {
-            if (line.contains("(") && line.contains(")")) {
-                int posBrOpen = line.indexOf('(');
-                int posBrClose = line.lastIndexOf(')');
-                return parseFormula(line.substring(posBrOpen + 1, posBrClose));
-            }
 
+            return CNF.convertFromImply(cnf1, cnf2);
+        } else if (!line.contains("(") && !line.contains(")")) {
             int countAND = 0;
             int countOR = 0;
             for (int i = 0; i < line.length(); i ++) {
@@ -72,9 +71,41 @@ public class Parser {
 
                 return cnf;
             }
-        }
+        } else {
+            CNF result = new CNF();
 
-        return null;
+            boolean isPrevDisjunction = false;
+
+            while(true) {
+                int posBrOpen = line.indexOf('(');
+                int posBrClose = line.indexOf(')');
+                if (posBrOpen == -1 && posBrClose == -1) {
+                    break;
+                }
+
+                CNF cnf = parseFormula(line.substring(posBrOpen + 1, posBrClose));
+                if (isPrevDisjunction) {
+                    result.disjunction(cnf);
+                } else {
+                    result.add(cnf);
+                }
+
+                if (posBrClose + 1 == line.length()) {
+                    break;
+                }
+
+                if (line.charAt(posBrClose + 1) == 'V') {
+                    isPrevDisjunction = true;
+                } else if (line.charAt(posBrClose + 1) == '^') {
+                    isPrevDisjunction = false;
+                }
+
+
+                line = line.substring(posBrClose + 2);
+            }
+
+            return result;
+        }
     }
 
     public static PLWumpusWorldSymbol parseLiteral(String strLiteral) {
