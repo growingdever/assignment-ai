@@ -95,9 +95,9 @@ public class PLWumpusWorldSymbol implements Comparable<PLWumpusWorldSymbol> {
         }
 
         if (isNegation) {
-            return String.format("~%c(%d,%d)", c, y, x);
+            return String.format("~%c%d,%d", c, y, x);
         } else {
-            return String.format("%c(%d,%d)", c, y, x);
+            return String.format("%c%d,%d", c, y, x);
         }
     }
 

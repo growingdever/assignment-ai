@@ -35,9 +35,6 @@ class WorldApplication {
 
     public static void main(String args[]) throws Exception {
         WorldApplication wa = new WorldApplication();
-
-        boolean nonDeterministicMode = false;
-
         if (wa.readPara(args) == 6) {
             wa.start();
         } else {
@@ -51,7 +48,7 @@ class WorldApplication {
 
         WumpusInferenceEngine engine = new WumpusInferenceEngine(map, worldSize);
         engine.printKnowledgeBase(KB);
-        engine.runInference(query);
+        engine.runInference(query, results);
     }
 
     private void usage() {

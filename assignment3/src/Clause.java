@@ -145,7 +145,7 @@ public class Clause implements Comparable<Clause> {
         stringBuilder.append(literal.toString());
 
         for (int i = 1; i < literals.size(); i++) {
-            stringBuilder.append(" OR ");
+            stringBuilder.append("V");
 
             literal = this.literals.get(i);
             stringBuilder.append(literal.toString());

@@ -42,32 +42,20 @@ public class WumpusInferenceEngine {
 
             CNF cnf = kb.getCNF();
 
+            output.print("1.");
             output.print(cnf.get(0).toString());
 
             for (int i = 1; i < cnf.size(); i ++) {
-                output.print(" V ");
+                output.print(i + 1);
+                output.print(".");
                 output.print(cnf.get(i).toString());
+                output.println();
             }
 
-            output.println();
             output.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-    }
-
-    String buildClausesString(CNF cnf) {
-        StringBuilder stringBuilder = new StringBuilder();
-        for (int i = 0; i < cnf.size(); i ++) {
-            if (i > 0) {
-                stringBuilder.append("\n AND ");
-            }
-
-            Clause clause = cnf.get(i);
-            stringBuilder.append(clause.toString());
-        }
-
-        return stringBuilder.toString();
     }
 
     void addClauseByBreeze(int target_x, int target_y) {
@@ -172,21 +160,39 @@ public class WumpusInferenceEngine {
         return count == 4;
     }
 
-    public void runInference(String queryFilePath) {
+    public void runInference(String queryFilePath, String queryOutputPath) {
         try {
             File queryFile = new File(queryFilePath);
             FileReader fileReader = new FileReader(queryFile);
             BufferedReader reader = new BufferedReader(fileReader);
+            ArrayList<String> inputLines = new ArrayList<>();
             while (true) {
                 String line = reader.readLine();
                 if (line == null || line.length() == 0) {
                     break;
                 }
 
+                inputLines.add(line);
+            }
+
+            PrintWriter output = new PrintWriter(queryOutputPath);
+            int lineNumber = 1;
+            for (String line : inputLines) {
                 CNF clauses = Parser.parseQueryLine(line);
+
                 boolean result = runResolutionInference(clauses);
                 System.out.println(result);
+
+                output.print(lineNumber + ".");
+                if (result) {
+                    output.println("yes");
+                } else {
+                    output.println("no");
+                }
+
+                lineNumber++;
             }
+            output.close();
         } catch (IOException e) {
             e.printStackTrace();
         }

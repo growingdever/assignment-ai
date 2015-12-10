@@ -30,14 +30,10 @@ public class CNF {
 
         StringBuilder stringBuilder = new StringBuilder();
 
-        stringBuilder.append("(");
         stringBuilder.append(clauses.get(0));
-        stringBuilder.append(")");
         for (int i = 1; i < clauses.size(); i ++) {
-            stringBuilder.append(" AND ");
-            stringBuilder.append("(");
+            stringBuilder.append("^");
             stringBuilder.append(clauses.get(i).toString());
-            stringBuilder.append(")");
         }
 
         return stringBuilder.toString();
