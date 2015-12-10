@@ -22,10 +22,6 @@
  */
 
 
-import java.io.*;
-import java.util.*;
-
-
 class WorldApplication {
 
     private static String VERSION = "v0.21a";
