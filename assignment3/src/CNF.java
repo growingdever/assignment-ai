@@ -21,6 +21,27 @@ public class CNF {
         }
     }
 
+    @Override
+    public String toString() {
+        if (clauses.size() == 0) {
+            return "";
+        }
+
+        StringBuilder stringBuilder = new StringBuilder();
+
+        stringBuilder.append("(");
+        stringBuilder.append(clauses.get(0));
+        stringBuilder.append(")");
+        for (int i = 1; i < clauses.size(); i ++) {
+            stringBuilder.append(" AND ");
+            stringBuilder.append("(");
+            stringBuilder.append(clauses.get(i).toString());
+            stringBuilder.append(")");
+        }
+
+        return stringBuilder.toString();
+    }
+
     public void add(Clause clause) {
         if (clauses.size() == 0) {
             clauses.add(clause);
@@ -63,29 +84,29 @@ public class CNF {
     public static CNF negate(CNF cnf) {
         CNF result = new CNF();
 
-        if (cnf.size() == 1) {
-            for (int i = 0; i < cnf.size(); i ++) {
-                Clause clause = cnf.get(i);
-                for (int j = 0; j < clause.size(); j ++) {
-                    PLWumpusWorldSymbol s = clause.get(j);
+        int[] indices = new int[cnf.size()];
 
-                    Clause new_clause = new Clause();
-                    PLWumpusWorldSymbol clone = new PLWumpusWorldSymbol(s.type, s.x, s.y, !s.isNegation);
-                    new_clause.add(clone);
-                    result.add(new_clause);
-                }
-            }
-        } else {
-            Clause new_clause = new Clause();
+        int last = 1;
+        for (int i = 0; i < cnf.size(); i ++) {
+            last *= cnf.get(i).size();
+        }
+
+        for (int it = 0; it < last; it ++) {
+            Clause newClause = new Clause();
             for (int i = 0; i < cnf.size(); i ++) {
-                Clause clause = cnf.get(i);
-                for (int j = 0; j < clause.size(); j ++) {
-                    PLWumpusWorldSymbol s = clause.get(j);
-                    PLWumpusWorldSymbol clone = new PLWumpusWorldSymbol(s.type, s.x, s.y, !s.isNegation);
-                    new_clause.add(clone);
+                PLWumpusWorldSymbol origin = cnf.get(i).get(indices[i]);
+                PLWumpusWorldSymbol negatedSymbol = new PLWumpusWorldSymbol(origin, !origin.isNegation);
+                newClause.add(negatedSymbol);
+            }
+            result.add(newClause);
+
+            indices[cnf.size() - 1]++;
+            for (int i = cnf.size() - 1; i >= 1; i --) {
+                if (indices[i] >= cnf.get(i).size()) {
+                    indices[i] = 0;
+                    indices[i - 1]++;
                 }
             }
-            result.add(new_clause);
         }
 
         return result;
