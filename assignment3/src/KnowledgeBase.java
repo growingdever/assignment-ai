@@ -6,18 +6,18 @@ import java.util.Collections;
  */
 public class KnowledgeBase {
 
-    private ArrayList< ArrayList<PLWumpusWorldSymbol> > clauses;
+    private ArrayList<Clause> clauses;
 
     public KnowledgeBase() {
         clauses = new ArrayList<>();
     }
 
-    public void addClause(ArrayList<PLWumpusWorldSymbol> clause) {
-        Collections.sort(clause);
+    public void addClause(Clause clause) {
+        clause.sort();
         clauses.add(clause);
     }
 
-    public ArrayList< ArrayList<PLWumpusWorldSymbol> > getClauses() {
+    public ArrayList<Clause> getClauses() {
         return clauses;
     }
 

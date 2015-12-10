@@ -38,6 +38,18 @@ class WorldApplication {
     int worldSize;
 
     public static void main(String args[]) throws Exception {
+        Clause clause = new Clause();
+        PLWumpusWorldSymbol s1 = new PLWumpusWorldSymbol(PLWumpusWorldSymbol.SymbolType.BREEZE, 0, 0);
+        PLWumpusWorldSymbol s2 = new PLWumpusWorldSymbol(PLWumpusWorldSymbol.SymbolType.BREEZE, 0, 2);
+        PLWumpusWorldSymbol s3 = new PLWumpusWorldSymbol(PLWumpusWorldSymbol.SymbolType.BREEZE, 0, 4);
+        PLWumpusWorldSymbol s4 = new PLWumpusWorldSymbol(PLWumpusWorldSymbol.SymbolType.BREEZE, 1, 0);
+        PLWumpusWorldSymbol s5 = new PLWumpusWorldSymbol(PLWumpusWorldSymbol.SymbolType.BREEZE, 1, 2);
+        clause.add(s1);
+        clause.add(s3);
+        clause.add(s5);
+        clause.add(s2);
+        clause.add(s4);
+        boolean exist = clause.exist(s4);
 
         WorldApplication wa = new WorldApplication();
 
@@ -55,8 +67,8 @@ class WorldApplication {
         char[][] map = MapReader.readWumpusWorld(worldSize, gameboard);
 
         WumpusInferenceEngine engine = new WumpusInferenceEngine(map, worldSize);
-        engine.runInference(query);
         engine.printKnowledgeBase(KB);
+        engine.runInference(query);
     }
 
     private void usage() {

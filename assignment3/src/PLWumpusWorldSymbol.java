@@ -44,6 +44,13 @@ public class PLWumpusWorldSymbol implements Comparable<PLWumpusWorldSymbol> {
         this.y = y;
     }
 
+    public PLWumpusWorldSymbol(SymbolType type, int x, int y, boolean negation) {
+        this.type = type;
+        this.x = x;
+        this.y = y;
+        this.isNegation = negation;
+    }
+
     public PLWumpusWorldSymbol(PLWumpusWorldSymbol s) {
         this.type = s.type;
         this.x = s.x;
