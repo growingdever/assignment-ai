@@ -40,13 +40,13 @@ public class WumpusInferenceEngine {
         try {
             PrintWriter output = new PrintWriter(path);
 
-            ArrayList<Clause> clauses = kb.getClauses();
+            CNF cnf = kb.getCNF();
 
-            output.print(clauses.get(0).toString());
+            output.print(cnf.get(0).toString());
 
-            for (int i = 1; i < clauses.size(); i ++) {
+            for (int i = 1; i < cnf.size(); i ++) {
                 output.print(" V ");
-                output.print(clauses.get(i).toString());
+                output.print(cnf.get(i).toString());
             }
 
             output.println();
@@ -56,14 +56,14 @@ public class WumpusInferenceEngine {
         }
     }
 
-    String buildClausesString(ArrayList<Clause> clauses) {
+    String buildClausesString(CNF cnf) {
         StringBuilder stringBuilder = new StringBuilder();
-        for (int i = 0; i < clauses.size(); i ++) {
+        for (int i = 0; i < cnf.size(); i ++) {
             if (i > 0) {
                 stringBuilder.append("\n AND ");
             }
 
-            Clause clause = clauses.get(i);
+            Clause clause = cnf.get(i);
             stringBuilder.append(clause.toString());
         }
 
@@ -183,7 +183,7 @@ public class WumpusInferenceEngine {
                     break;
                 }
 
-                ArrayList<Clause> clauses = parseQueryLine(line);
+                CNF clauses = parseQueryLine(line);
                 boolean result = runResolutionInference(clauses);
                 System.out.println(buildClausesString(clauses));
                 System.out.println(result);
@@ -194,52 +194,21 @@ public class WumpusInferenceEngine {
         }
     }
 
-    ArrayList<Clause> negateClauses(ArrayList<Clause> clauses) {
-        ArrayList<Clause> result = new ArrayList<>();
-
-        if (clauses.size() == 1) {
-            for (Clause clause : clauses) {
-                for (int i = 0; i < clause.size(); i ++) {
-                    PLWumpusWorldSymbol s = clause.get(i);
-
-                    Clause new_clause = new Clause();
-                    PLWumpusWorldSymbol clone = new PLWumpusWorldSymbol(s.type, s.x, s.y, !s.isNegation);
-                    new_clause.add(clone);
-                    result.add(new_clause);
-                }
-            }
-        } else {
-            Clause new_clause = new Clause();
-            for (Clause clause : clauses) {
-                for (int i = 0; i < clause.size(); i ++) {
-                    PLWumpusWorldSymbol s = clause.get(i);
-
-                    PLWumpusWorldSymbol clone = new PLWumpusWorldSymbol(s);
-                    clone.setNegative();
-                    new_clause.add(clone);
-                }
-            }
-            result.add(new_clause);
-        }
-
-        return result;
-    }
-
-    boolean runResolutionInference(ArrayList<Clause> alpha) {
-        ArrayList<Clause> clauses = Util.cloneClauses(kb.getClauses());
+    boolean runResolutionInference(CNF alpha) {
+        CNF cnf = new CNF(kb.getCNF());
 
         // KB ^ ~a
-        ArrayList<Clause> negatedAlpha = negateClauses(alpha);
-        clauses.addAll(negatedAlpha);
+        CNF negatedAlpha = CNF.negate(alpha);
+        cnf.add(negatedAlpha);
 
         int i, j, k;
         while (true) {
-            ArrayList<Clause> new_clauses = new ArrayList<>();
+            CNF new_cnf = new CNF();
 
-            for (i = 0; i < clauses.size(); i ++) {
-                Clause clause1 = clauses.get(i);
-                for (j = i + 1; j < clauses.size(); j ++) {
-                    Clause clause2 = clauses.get(j);
+            for (i = 0; i < cnf.size(); i ++) {
+                Clause clause1 = cnf.get(i);
+                for (j = i + 1; j < cnf.size(); j ++) {
+                    Clause clause2 = cnf.get(j);
 
                     if (clause1.size() == 1 && clause2.size() == 1) {
                         PLWumpusWorldSymbol symbol1 = clause1.get(0);
@@ -255,43 +224,43 @@ public class WumpusInferenceEngine {
                             continue;
                         }
 
-                        ArrayList<Clause> resolvents = Clause.resolve(clause1, clause2);
+                        CNF resolvents = Clause.resolve(clause1, clause2);
                         for (k = 0; k < resolvents.size(); k ++) {
                             Clause resolved = resolvents.get(k);
                             if (resolved.size() == 0) {
                                 return true;
                             }
 
-                            new_clauses.add(resolved);
+                            new_cnf.add(resolved);
                         }
                     }
                 }
             }
 
             // there is no new resolved clause
-            if (new_clauses.size() == 0) {
+            if (new_cnf.size() == 0) {
                 return false;
             }
 
 
-            int prevSize = clauses.size();
+            int prevSize = cnf.size();
 
             // union origin clauses and new clauses
             {
                 ArrayList<Integer> newClauseIndices = new ArrayList<>();
-                for (i = 0; i < new_clauses.size(); i ++) {
-                    Clause new_clause = new_clauses.get(i);
-                    if (!Util.existSameSortedClause(clauses, new_clause)) {
+                for (i = 0; i < new_cnf.size(); i ++) {
+                    Clause new_clause = new_cnf.get(i);
+                    if (!cnf.exist(new_clause)) {
                         newClauseIndices.add(i);
                     }
                 }
 
                 for (Integer idx : newClauseIndices) {
-                    clauses.add(new_clauses.get(idx));
+                    cnf.add(new_cnf.get(idx));
                 }
             }
 
-            int currSize = clauses.size();
+            int currSize = cnf.size();
 
             // there is no new resolved clause
             if (prevSize == currSize) {
@@ -300,7 +269,7 @@ public class WumpusInferenceEngine {
         }
     }
 
-    ArrayList<Clause> parseQueryLine(String line) {
+    CNF parseQueryLine(String line) {
         // skip line number suffix
         line = line.substring(2);
 
@@ -321,26 +290,26 @@ public class WumpusInferenceEngine {
         }
 
         if (countAND > 0) {
-            ArrayList<Clause> clauses = new ArrayList<>();
+            CNF cnf = new CNF();
             for (String token : tokens) {
                 Clause clause = new Clause();
                 PLWumpusWorldSymbol symbol = Parser.parseLiteral(token);
                 clause.add(symbol);
-                clauses.add(clause);
+                cnf.add(clause);
             }
 
-            return clauses;
+            return cnf;
         } else {
-            ArrayList<Clause> clauses = new ArrayList<>();
+            CNF cnf = new CNF();
             Clause clause = new Clause();
-            clauses.add(clause);
+            cnf.add(clause);
 
             for (String token : tokens) {
                 PLWumpusWorldSymbol symbol = Parser.parseLiteral(token);
                 clause.add(symbol);
             }
 
-            return clauses;
+            return cnf;
         }
     }
 

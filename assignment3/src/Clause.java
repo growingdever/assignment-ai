@@ -159,8 +159,8 @@ public class Clause implements Comparable<Clause> {
         return false;
     }
 
-    public static ArrayList<Clause> resolve(Clause c1, Clause c2) {
-        ArrayList<Clause> result = new ArrayList<>();
+    public static CNF resolve(Clause c1, Clause c2) {
+        CNF result = new CNF();
 
         ArrayList<Integer> oppositeIndices = new ArrayList<>();
         for (int i = 0; i < c1.size(); i ++) {
@@ -218,7 +218,7 @@ public class Clause implements Comparable<Clause> {
                     }
                 }
 
-                if (!Util.existSameSortedClause(result, new_clause)) {
+                if (!result.exist(new_clause)) {
                     result.add(new_clause);
                 }
             }
@@ -226,6 +226,5 @@ public class Clause implements Comparable<Clause> {
 
         return result;
     }
-
 
 }

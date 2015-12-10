@@ -1,23 +1,21 @@
-import java.util.ArrayList;
-
 /**
  * Created by loki on 2015. 12. 8..
  */
 public class KnowledgeBase {
 
-    private ArrayList<Clause> clauses;
+    private CNF cnf;
 
     public KnowledgeBase() {
-        clauses = new ArrayList<>();
+        cnf = new CNF();
     }
 
     public void addClause(Clause clause) {
         clause.sort();
-        clauses.add(clause);
+        cnf.add(clause);
     }
 
-    public ArrayList<Clause> getClauses() {
-        return clauses;
+    public CNF getCNF() {
+        return cnf;
     }
 
 }
