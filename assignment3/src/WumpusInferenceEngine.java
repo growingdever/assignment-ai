@@ -1,10 +1,17 @@
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Random;
 
 /**
  * Created by loki on 2015. 12. 8..
  */
 public class WumpusInferenceEngine {
+
+    public enum AlgorithmType {
+        RESOLUTION,
+        RANDOM_WALKING,
+    };
 
     static int OFFSET_X[] = { -1, 0, 1, 0 };
     static int OFFSET_Y[] = { 0, 1, 0, -1 };
@@ -160,7 +167,7 @@ public class WumpusInferenceEngine {
         return count == 4;
     }
 
-    public void runInference(String queryFilePath, String queryOutputPath) {
+    public void runInference(String queryFilePath, String queryOutputPath, AlgorithmType algorithm) {
         try {
             File queryFile = new File(queryFilePath);
             FileReader fileReader = new FileReader(queryFile);
@@ -178,9 +185,15 @@ public class WumpusInferenceEngine {
             PrintWriter output = new PrintWriter(queryOutputPath);
             int lineNumber = 1;
             for (String line : inputLines) {
-                CNF clauses = Parser.parseQueryLine(line);
+                CNF queryCNF = Parser.parseQueryLine(line);
 
-                boolean result = runResolutionInference(clauses);
+                boolean result = false;
+                if (algorithm == AlgorithmType.RESOLUTION) {
+                    result = runResolutionInference(queryCNF);
+                } else if (algorithm == AlgorithmType.RANDOM_WALKING){
+                    result = runWalkSAT(queryCNF, 0.01, 100000);
+                }
+
                 System.out.println(result);
 
                 output.print(lineNumber + ".");
@@ -271,6 +284,151 @@ public class WumpusInferenceEngine {
                 return false;
             }
         }
+    }
+
+    boolean runWalkSAT(CNF queryCNF, double p, int maxFlips) {
+        CNF cnf = new CNF(kb.getCNF());
+        cnf.add(queryCNF);
+
+        int countP = 0;
+        int countQ = 0;
+
+        boolean[][] modelPit = new boolean[worldSize][worldSize];
+        boolean[][] modelBreeze = new boolean[worldSize][worldSize];
+
+        Random random = new Random();
+        random.setSeed(System.currentTimeMillis());
+
+        for (int y = 0; y < worldSize; y ++) {
+            for (int x = 0; x < worldSize; x ++) {
+                modelBreeze[y][x] = random.nextBoolean();
+                modelPit[y][x] = random.nextBoolean();
+            }
+        }
+
+        ArrayList<Clause> falseClauseList = new ArrayList<>();
+
+        for (int flip = 0; flip < maxFlips; flip ++) {
+            falseClauseList.clear();
+
+            boolean sat = true;
+            for (int i = 0; i < cnf.size(); i ++) {
+                Clause clause = cnf.get(i);
+                boolean isSatisfying = isSatisfied(clause, modelBreeze, modelPit);
+                if (!isSatisfying) {
+                    falseClauseList.add(clause);
+                } else {
+                }
+
+                sat = sat && isSatisfying;
+            }
+
+            if (sat) {
+                return true;
+            }
+
+            Clause falseClause = falseClauseList.get(random.nextInt(falseClauseList.size()));
+
+            double q = random.nextDouble();
+            if (q < p) {
+                PLWumpusWorldSymbol randomSymbol = falseClause.get(random.nextInt(falseClause.size()));
+                if (randomSymbol.type == PLWumpusWorldSymbol.SymbolType.PIT) {
+                    modelPit[randomSymbol.y][randomSymbol.x] = !modelPit[randomSymbol.y][randomSymbol.x];
+                } else if (randomSymbol.type == PLWumpusWorldSymbol.SymbolType.BREEZE) {
+                    modelBreeze[randomSymbol.y][randomSymbol.x] = !modelBreeze[randomSymbol.y][randomSymbol.x];
+                }
+
+                countP++;
+            } else {
+                int maxNumOfSatisfiedClause = -1;
+                PLWumpusWorldSymbol maximizeSymbol = falseClause.get(0);
+                for (int i = 0; i < falseClause.size(); i ++) {
+                    PLWumpusWorldSymbol symbol = falseClause.get(i);
+                    boolean origin = false;
+
+                    if (symbol.type == PLWumpusWorldSymbol.SymbolType.PIT) {
+                        origin = modelPit[symbol.y][symbol.x];
+                        modelPit[symbol.y][symbol.x] = !origin;
+                    } else if (symbol.type == PLWumpusWorldSymbol.SymbolType.BREEZE) {
+                        origin = modelBreeze[symbol.y][symbol.x];
+                        modelBreeze[symbol.y][symbol.x] = !origin;
+                    }
+
+                    int numOfSatisfiedClause = 0;
+                    for (int j = 0; j < cnf.size(); j ++) {
+                        Clause clause = cnf.get(j);
+                        if (isSatisfied(clause, modelBreeze, modelPit)) {
+                            numOfSatisfiedClause++;
+                        }
+                    }
+
+                    if (symbol.type == PLWumpusWorldSymbol.SymbolType.PIT) {
+                        modelPit[symbol.y][symbol.x] = origin;
+                    } else if (symbol.type == PLWumpusWorldSymbol.SymbolType.BREEZE) {
+                        modelBreeze[symbol.y][symbol.x] = origin;
+                    }
+
+                    if (maxNumOfSatisfiedClause < numOfSatisfiedClause) {
+                        maximizeSymbol = symbol;
+                        maxNumOfSatisfiedClause = numOfSatisfiedClause;
+                    }
+                }
+
+                if (maximizeSymbol.type == PLWumpusWorldSymbol.SymbolType.PIT) {
+                    modelPit[maximizeSymbol.y][maximizeSymbol.x] = !modelPit[maximizeSymbol.y][maximizeSymbol.x];
+                } else if (maximizeSymbol.type == PLWumpusWorldSymbol.SymbolType.BREEZE) {
+                    modelBreeze[maximizeSymbol.y][maximizeSymbol.x] = !modelBreeze[maximizeSymbol.y][maximizeSymbol.x];
+                }
+
+                countQ++;
+            }
+        }
+
+        return false;
+    }
+
+    boolean isSatisfied(Clause clause, boolean[][] modelBreeze, boolean[][] modelPit) {
+        if (clause.size() == 0) {
+            return true;
+        }
+
+        PLWumpusWorldSymbol first = clause.get(0);
+
+        boolean sat = false;
+        if (first.type == PLWumpusWorldSymbol.SymbolType.PIT) {
+            if (first.isNegation) {
+                sat = !modelPit[first.y][first.x];
+            } else {
+                sat = modelPit[first.y][first.x];
+            }
+        } else if (first.type == PLWumpusWorldSymbol.SymbolType.BREEZE) {
+            if (first.isNegation) {
+                sat = !modelBreeze[first.y][first.x];
+            } else {
+                sat = modelBreeze[first.y][first.x];
+            }
+        }
+
+        for (int j = 1; j < clause.size(); j ++) {
+            PLWumpusWorldSymbol symbol = clause.get(j);
+            if (symbol.type == PLWumpusWorldSymbol.SymbolType.BREEZE) {
+                boolean target = modelBreeze[symbol.y][symbol.x];
+                if (symbol.isNegation) {
+                    target = !target;
+                }
+
+                sat = sat || target;
+            } else if (symbol.type == PLWumpusWorldSymbol.SymbolType.PIT) {
+                boolean target = modelPit[symbol.y][symbol.x];
+                if (symbol.isNegation) {
+                    target = !target;
+                }
+
+                sat = sat || target;
+            }
+        }
+
+        return sat;
     }
 
 }

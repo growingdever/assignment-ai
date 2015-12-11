@@ -48,7 +48,11 @@ class WorldApplication {
 
         WumpusInferenceEngine engine = new WumpusInferenceEngine(map, worldSize);
         engine.printKnowledgeBase(KB);
-        engine.runInference(query, results);
+        if (algo == 1) {
+            engine.runInference(query, results, WumpusInferenceEngine.AlgorithmType.RESOLUTION);
+        } else if (algo == 2) {
+            engine.runInference(query, results, WumpusInferenceEngine.AlgorithmType.RANDOM_WALKING);
+        }
     }
 
     private void usage() {
