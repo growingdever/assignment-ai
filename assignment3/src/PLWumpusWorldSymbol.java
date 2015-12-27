@@ -2,28 +2,6 @@
  * Created by loki on 2015. 12. 8..
  */
 public class PLWumpusWorldSymbol implements Comparable<PLWumpusWorldSymbol> {
-    @Override
-    public int compareTo(PLWumpusWorldSymbol o) {
-        if (this.type != o.type) {
-            return this.type.compareTo(o.type);
-        }
-
-        int result = this.y - o.y;
-
-        if (result == 0) {
-            result = this.x - o.x;
-        }
-
-        if (result == 0) {
-            if (this.isNegation && !o.isNegation) {
-                result = 1;
-            } else if (!this.isNegation && o.isNegation) {
-                result = -1;
-            }
-        }
-
-        return result;
-    }
 
     public enum SymbolType {
         GOLD,
@@ -118,4 +96,28 @@ public class PLWumpusWorldSymbol implements Comparable<PLWumpusWorldSymbol> {
         PLWumpusWorldSymbol symbol = (PLWumpusWorldSymbol) object;
         return this.isSameTarget(symbol) && this.isNegation == symbol.isNegation;
     }
+
+    @Override
+    public int compareTo(PLWumpusWorldSymbol o) {
+        if (this.type != o.type) {
+            return this.type.compareTo(o.type);
+        }
+
+        int result = this.y - o.y;
+
+        if (result == 0) {
+            result = this.x - o.x;
+        }
+
+        if (result == 0) {
+            if (this.isNegation && !o.isNegation) {
+                result = 1;
+            } else if (!this.isNegation && o.isNegation) {
+                result = -1;
+            }
+        }
+
+        return result;
+    }
+
 }

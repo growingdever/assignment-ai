@@ -36,7 +36,9 @@ class WorldApplication {
     public static void main(String args[]) throws Exception {
         WorldApplication wa = new WorldApplication();
         if (wa.readPara(args) == 6) {
+            System.out.println(System.currentTimeMillis());
             wa.start();
+            System.out.println(System.currentTimeMillis());
         } else {
             wa.usage();
         }

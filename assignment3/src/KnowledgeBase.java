@@ -11,7 +11,10 @@ public class KnowledgeBase {
 
     public void addClause(Clause clause) {
         clause.sort();
-        cnf.add(clause);
+
+        if (!cnf.exist(clause)) {
+            cnf.add(clause);
+        }
     }
 
     public CNF getCNF() {

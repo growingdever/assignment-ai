@@ -5,7 +5,7 @@ public class Parser {
 
     public static CNF parseQueryLine(String line) {
         // skip line number suffix
-        line = line.substring(2);
+        line = line.substring(line.indexOf('.') + 1);
 
         return parseFormula(line);
     }

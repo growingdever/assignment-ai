@@ -50,7 +50,7 @@ public class WumpusInferenceEngine {
             CNF cnf = kb.getCNF();
 
             output.print("1.");
-            output.print(cnf.get(0).toString());
+            output.println(cnf.get(0).toString());
 
             for (int i = 1; i < cnf.size(); i ++) {
                 output.print(i + 1);
@@ -191,7 +191,7 @@ public class WumpusInferenceEngine {
                 if (algorithm == AlgorithmType.RESOLUTION) {
                     result = runResolutionInference(queryCNF);
                 } else if (algorithm == AlgorithmType.RANDOM_WALKING){
-                    result = runWalkSAT(queryCNF, 0.01, 100000);
+                    result = !runWalkSAT(queryCNF, 0.1, 1000);
                 }
 
                 System.out.println(result);
@@ -212,6 +212,19 @@ public class WumpusInferenceEngine {
     }
 
     boolean runResolutionInference(CNF alpha) {
+        if (alpha.size() == 1 && alpha.get(0).size() == 1) {
+            PLWumpusWorldSymbol alphaSymbol = alpha.get(0).get(0);
+            CNF kbCNF = kb.getCNF();
+            for (int i = 0; i < kbCNF.size(); i ++) {
+                Clause clause = kbCNF.get(i);
+                if (clause.size() == 1) {
+                    if (clause.get(0).isOpposite(alphaSymbol)) {
+                        return false;
+                    }
+                }
+            }
+        }
+
         CNF cnf = new CNF(kb.getCNF());
 
         // KB ^ ~a
@@ -288,10 +301,7 @@ public class WumpusInferenceEngine {
 
     boolean runWalkSAT(CNF queryCNF, double p, int maxFlips) {
         CNF cnf = new CNF(kb.getCNF());
-        cnf.add(queryCNF);
-
-        int countP = 0;
-        int countQ = 0;
+        cnf.add(CNF.negate(queryCNF));
 
         boolean[][] modelPit = new boolean[worldSize][worldSize];
         boolean[][] modelBreeze = new boolean[worldSize][worldSize];
@@ -302,6 +312,10 @@ public class WumpusInferenceEngine {
         for (int y = 0; y < worldSize; y ++) {
             for (int x = 0; x < worldSize; x ++) {
                 modelBreeze[y][x] = random.nextBoolean();
+                if (map[y][x] == 'B') {
+                    modelBreeze[y][x] = true;
+                }
+
                 modelPit[y][x] = random.nextBoolean();
             }
         }
@@ -337,8 +351,6 @@ public class WumpusInferenceEngine {
                 } else if (randomSymbol.type == PLWumpusWorldSymbol.SymbolType.BREEZE) {
                     modelBreeze[randomSymbol.y][randomSymbol.x] = !modelBreeze[randomSymbol.y][randomSymbol.x];
                 }
-
-                countP++;
             } else {
                 int maxNumOfSatisfiedClause = -1;
                 PLWumpusWorldSymbol maximizeSymbol = falseClause.get(0);
@@ -379,8 +391,6 @@ public class WumpusInferenceEngine {
                 } else if (maximizeSymbol.type == PLWumpusWorldSymbol.SymbolType.BREEZE) {
                     modelBreeze[maximizeSymbol.y][maximizeSymbol.x] = !modelBreeze[maximizeSymbol.y][maximizeSymbol.x];
                 }
-
-                countQ++;
             }
         }
 
